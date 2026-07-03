@@ -12,7 +12,8 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 ### Technical Constraints & "Bring-Your-Own" Architecture
 * **Zero-Backend Execution:** The application will be a static/client-side React app. There is no proprietary backend server mediating API requests.
-* **BYO-LLM (OpenAI-Compatible):** Users must provide their own API endpoint, API key, and Model Name. This ensures compatibility with OpenAI, OpenRouter, and local models (e.g., `llama.cpp` or Ollama) to support maximum privacy and zero hosting costs. 
+* **BYO-LLM (OpenAI-Compatible):** Users must provide their own API endpoint and API key. This ensures compatibility with OpenAI, OpenRouter, and local models (e.g., `llama.cpp`) to support maximum privacy and zero hosting costs.
+* **Dynamic Model Discovery:** The model picker is a dropdown populated from the provider's `GET /v1/models`, not a free-text field.
 * **BYO-Socrata Token:** Users will provide their own Socrata App Token to bypass unauthenticated IP rate limits, shifting all data API quotas to the user.
 * **Strict Browser Performance Safeguards:** Hard-coded limits (e.g., `$limit=5000`) and aggressive timeouts must be strictly enforced on the client side before Socrata requests execute to prevent massive GeoJSON payloads from crashing the browser tab.
 
@@ -22,7 +23,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 | :--- | :--- | :--- |
 | **Frontend Framework** | React (Vite) | Pure static SPA, not Next.js — no server runtime to host, keeping the zero-backend posture literal. |
 | **Chat Component** | `assistant-ui` | Provides native Generative UI and tool-calling visualization. Connects seamlessly to the Vercel AI SDK. |
-| **AI Orchestration** | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`) | Handles LLM streaming and tool execution. BYO-LLM endpoints are called via `createOpenAI(...).chat(model)` — the universal `/v1/chat/completions` endpoint, not OpenAI's proprietary Responses API — since that's the only shape OpenRouter and local llama.cpp/Ollama servers actually implement. |
+| **AI Orchestration** | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`) | Handles LLM streaming and tool execution. BYO-LLM endpoints are called via the `/v1/responses` API, now supported across OpenAI, OpenRouter, and `llama-server`. |
 | **Data Source** | NYC Open Data (SODA API) | Natively supports structured `.geojson` responses from SoQL queries. Fetched entirely client-side. |
 | **Map Engine** | MapLibre GL JS + `react-map-gl` | WebGL-accelerated rendering capable of handling dense point data smoothly. Avoids the billing liabilities of Mapbox and the performance bottlenecks of Leaflet. |
 | **State Management** | `localStorage` | Stores user credentials (BYO keys/endpoints) locally, maintaining the zero-backend privacy posture. |
@@ -33,7 +34,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The user loads the static web app.
 * They are greeted by an onboarding modal explaining the BYOK (Bring Your Own Key) architecture.
 * The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local Llama") which populates the Base URL.
-* The user enters their API Key, Model Name, and optional Socrata App Token. 
+* The user enters their API Key and optional Socrata App Token, then picks a Model from a dropdown populated via the provider's `/v1/models`.
 * Credentials are saved to `localStorage`.
 
 **Step 2: Intent Expression & Schema Injection**
@@ -63,3 +64,5 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Schema Scope:** To prevent context-window exhaustion and hallucination, the app will launch with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked question→SoQL examples. **v1 ships with exactly two datasets: 311 Service Requests (`erm2-nwe9`) and the 2015 Street Tree Census (`uvpi-gqnh`)**, chosen to prove out the full architecture end-to-end before widening. Additional datasets (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely.
 * **CORS Restrictions:** For local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1. MapLibre's native layer styling will handle all rendering.
+* **Low Reasoning Effort & Verbosity by Default:** For models that support it, requests default to low reasoning effort and low text verbosity, since SoQL generation doesn't need deep reasoning; unsupported params are soft-failed and dropped rather than erroring.
+* **Anthropic Out of Scope for Direct BYO:** Anthropic has no native `/v1/responses` support, so direct Anthropic BYO isn't supported under this standardization (it wasn't a named target previously either).

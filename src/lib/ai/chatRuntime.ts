@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { DirectChatTransport, Experimental_Agent as ToolLoopAgent, stepCountIs } from "ai";
+import { DirectChatTransport, Experimental_Agent as ToolLoopAgent, stepCountIs, wrapLanguageModel } from "ai";
 import { useChatRuntime } from "@assistant-ui/react-ai-sdk";
 import { useCredentials } from "../credentials/useCredentials";
 import { useOpenAIClient } from "./openaiClient";
+import { reasoningEffortMiddleware } from "./reasoningEffortMiddleware";
 import { buildSystemPrompt } from "./systemPrompt";
 import { tools } from "./tools";
 
@@ -21,11 +22,10 @@ export function useOpenDataChatRuntime() {
     if (!client || !model) return undefined;
 
     const agent = new ToolLoopAgent({
-      // `.chat()` targets the universal /v1/chat/completions endpoint rather
-      // than OpenAI's proprietary /v1/responses API. BYO-LLM providers like
-      // OpenRouter and local llama.cpp/Ollama servers only implement the
-      // former, and calling a bare model id defaults to the latter.
-      model: client.chat(model),
+      // `.responses()` targets the /v1/responses endpoint, now supported by
+      // OpenAI, OpenRouter, and llama-server, and required for provider
+      // reasoning controls (see reasoningEffortMiddleware).
+      model: wrapLanguageModel({ model: client.responses(model), middleware: reasoningEffortMiddleware }),
       instructions: buildSystemPrompt(),
       tools,
       stopWhen: stepCountIs(MAX_AGENT_STEPS),

@@ -2,17 +2,29 @@ import { MapShell } from "./components/map/MapShell";
 import { ChatPanel } from "./components/chat/ChatPanel";
 import { OnboardingGate } from "./components/onboarding/OnboardingGate";
 import { SettingsPanel } from "./components/settings/SettingsPanel";
+import { Header } from "./components/layout/Header";
+import { useCredentials } from "./lib/credentials/useCredentials";
 
 function App() {
+  const hasCredentials = useCredentials((s) => !!s.credentials);
+
   return (
     <OnboardingGate>
-      <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
-          <MapShell />
+      <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh" }}>
+        <Header>
           <SettingsPanel />
-        </div>
-        <div style={{ width: 380, flexShrink: 0, borderLeft: "1px solid #e9ecef" }}>
-          <ChatPanel />
+        </Header>
+        <div className="app-body">
+          <div className="map-pane">
+            <MapShell />
+          </div>
+          <div className="chat-rail">
+            {/* ChatPanel owns useChatRuntime, which can't safely hot-swap
+                between an undefined and a real transport mid-lifecycle — so
+                it only mounts once credentials (and therefore a stable
+                transport) exist. */}
+            {hasCredentials && <ChatPanel />}
+          </div>
         </div>
       </div>
     </OnboardingGate>

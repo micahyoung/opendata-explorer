@@ -6,7 +6,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 ## 2. Product Requirements
 ### Core Capabilities
-* **Conversational Interface:** A chat UI embedded directly within the map frame that accepts natural language queries and returns visual, geographic updates alongside text.
+* **Conversational Interface:** A chat UI docked alongside the map within a single app shell (a persistent side-by-side rail, not a separate page) that accepts natural language queries and returns visual, geographic updates alongside text.
 * **Dynamic Data Rendering:** The ability to visualize thousands of data points (e.g., 311 service requests, tree census) in real-time as MapLibre GL JS layers.
 * **Agentic Soft-Fail & Auto-Correction:** LLMs must be provided tool calls to test queries client-side. If a generated SoQL query fails (e.g., hallucinated schema columns), the client must catch the error, return it to the LLM, and prompt a self-correction without breaking the user experience.
 
@@ -20,9 +20,9 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 | Layer | Technology | Rationale |
 | :--- | :--- | :--- |
-| **Frontend Framework** | React (Next.js/Vite) | Standard component-based UI, easily exported as a static site. |
+| **Frontend Framework** | React (Vite) | Pure static SPA, not Next.js — no server runtime to host, keeping the zero-backend posture literal. |
 | **Chat Component** | `assistant-ui` | Provides native Generative UI and tool-calling visualization. Connects seamlessly to the Vercel AI SDK. |
-| **AI Orchestration** | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`) | Handles LLM streaming, tool execution, and overriding the base URL for BYO-LLM configurations via `createOpenAI`. |
+| **AI Orchestration** | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`) | Handles LLM streaming and tool execution. BYO-LLM endpoints are called via `createOpenAI(...).chat(model)` — the universal `/v1/chat/completions` endpoint, not OpenAI's proprietary Responses API — since that's the only shape OpenRouter and local llama.cpp/Ollama servers actually implement. |
 | **Data Source** | NYC Open Data (SODA API) | Natively supports structured `.geojson` responses from SoQL queries. Fetched entirely client-side. |
 | **Map Engine** | MapLibre GL JS + `react-map-gl` | WebGL-accelerated rendering capable of handling dense point data smoothly. Avoids the billing liabilities of Mapbox and the performance bottlenecks of Leaflet. |
 | **State Management** | `localStorage` | Stores user credentials (BYO keys/endpoints) locally, maintaining the zero-backend privacy posture. |
@@ -37,8 +37,8 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * Credentials are saved to `localStorage`.
 
 **Step 2: Intent Expression & Schema Injection**
-* The user types a query into the `assistant-ui` chat: *"Show me the public recycling bins in Queens."*
-* The Vercel AI SDK packages the message alongside a curated, declarative system prompt containing schemas for supported NYC datasets (e.g., *Dataset ID: xxxx-yyyy, Fields: borough, site_type, point*).
+* The user types a query into the `assistant-ui` chat: *"Show me noise complaints in Queens."*
+* The Vercel AI SDK packages the message alongside a curated, declarative system prompt containing schemas and worked examples for the two supported v1 datasets (e.g., *Dataset ID: erm2-nwe9, Fields: complaint_type, borough, created_date, location*).
 * The payload is sent directly from the browser to the user's configured LLM endpoint.
 
 **Step 3: The Agentic SoQL Loop**
@@ -50,13 +50,13 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The Socrata API returns a valid GeoJSON FeatureCollection.
 * The client resolves the tool call, passing the GeoJSON to the `react-map-gl` component.
 * The map smoothly animates (flies) to the bounding box of the data. 
-* MapLibre GL JS renders the new layer (e.g., green dots for recycling bins) using WebGL over a free open-source basemap.
-* The LLM streams a conversational summary into the chat: *"I've mapped 1,204 public recycling bins in Queens. You can click on any point to see its exact location."*
+* MapLibre GL JS renders the new layer (e.g., orange dots for 311 requests, green for street trees — each dataset gets a fixed accent color) using WebGL over a free open-source basemap.
+* The LLM streams a conversational summary into the chat: *"I've mapped 1,000 noise complaints in Queens. You can click on any point to see its exact location."*
 
 **Step 5: Contextual Iteration**
-* The user types: *"Filter this to only show bins placed in parks."*
-* The LLM, maintaining conversational context and knowing the previously used schema, generates an updated SoQL query appending `AND site_type = 'Park'`. 
-* The map instantly updates to reflect the narrowed dataset. 
+* The user types: *"Switch to trees instead — just the ones in Brooklyn with poor health."*
+* The LLM, maintaining conversational context, regenerates the full query against the new dataset (`boroname = 'Brooklyn' AND health = 'Poor'`) rather than patching the previous one. 
+* The map's single active layer is replaced (not stacked) with the new result set. 
 
 ## 5. Architectural Guardrails (To Be Expanded in Implementation)
 

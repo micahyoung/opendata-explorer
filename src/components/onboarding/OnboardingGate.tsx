@@ -5,6 +5,10 @@ import { OnboardingModal } from "./OnboardingModal";
 export function OnboardingGate({ children }: { children: ReactNode }) {
   const credentials = useCredentials((s) => s.credentials);
 
-  if (!credentials) return <OnboardingModal />;
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {!credentials && <OnboardingModal />}
+    </>
+  );
 }

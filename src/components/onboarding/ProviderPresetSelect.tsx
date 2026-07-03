@@ -7,9 +7,9 @@ interface Props {
 
 export function ProviderPresetSelect({ value, onChange }: Props) {
   return (
-    <label style={{ display: "block", marginBottom: 10 }}>
-      <div style={{ marginBottom: 4, fontWeight: 600 }}>Provider preset</div>
-      <select value={value} onChange={(e) => onChange(e.target.value)} style={{ width: "100%", padding: 6 }}>
+    <label style={{ display: "block", marginBottom: 12 }}>
+      <span className="field-label">Provider preset</span>
+      <select className="field-input" value={value} onChange={(e) => onChange(e.target.value)}>
         {providerPresets.map((preset) => (
           <option key={preset.id} value={preset.id}>
             {preset.label}

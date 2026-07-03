@@ -43,52 +43,49 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
     <form onSubmit={handleSubmit}>
       <ProviderPresetSelect value={presetId} onChange={handlePresetChange} />
 
-      {preset?.notes && (
-        <p style={{ fontSize: 12, color: "#495057", marginTop: -4, marginBottom: 10 }}>{preset.notes}</p>
-      )}
+      {preset?.notes && <p className="field-hint">{preset.notes}</p>}
 
-      <label style={{ display: "block", marginBottom: 10 }}>
-        <div style={{ marginBottom: 4, fontWeight: 600 }}>Base URL</div>
+      <label style={{ display: "block", marginBottom: 12 }}>
+        <span className="field-label">Base URL</span>
         <input
+          className="field-input"
           value={baseURL}
           onChange={(e) => setBaseURL(e.target.value)}
           placeholder="https://api.openai.com/v1"
-          style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
         />
       </label>
 
-      <label style={{ display: "block", marginBottom: 10 }}>
-        <div style={{ marginBottom: 4, fontWeight: 600 }}>API key</div>
+      <label style={{ display: "block", marginBottom: 12 }}>
+        <span className="field-label">API key</span>
         <input
+          className="field-input"
           type="password"
+          autoComplete="off"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
-          style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
         />
       </label>
 
-      <label style={{ display: "block", marginBottom: 10 }}>
-        <div style={{ marginBottom: 4, fontWeight: 600 }}>Model name</div>
+      <label style={{ display: "block", marginBottom: 12 }}>
+        <span className="field-label">Model name</span>
         <input
+          className="field-input"
           value={model}
           onChange={(e) => setModel(e.target.value)}
           placeholder="gpt-4o"
-          style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
         />
       </label>
 
-      <label style={{ display: "block", marginBottom: 14 }}>
-        <div style={{ marginBottom: 4, fontWeight: 600 }}>Socrata app token (optional)</div>
-        <input
-          value={socrataAppToken}
-          onChange={(e) => setSocrataAppToken(e.target.value)}
-          style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
-        />
+      <label style={{ display: "block", marginBottom: 16 }}>
+        <span className="field-label">Socrata app token (optional)</span>
+        <input className="field-input" value={socrataAppToken} onChange={(e) => setSocrataAppToken(e.target.value)} />
       </label>
 
-      {error && <p style={{ color: "#c92a2a", fontSize: 13 }}>{error}</p>}
+      {error && (
+        <p style={{ color: "var(--alert-orange-dark)", fontSize: 13, marginTop: -6, marginBottom: 12 }}>{error}</p>
+      )}
 
-      <button type="submit" style={{ width: "100%", padding: 10, fontWeight: 600 }}>
+      <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
         {submitLabel}
       </button>
     </form>

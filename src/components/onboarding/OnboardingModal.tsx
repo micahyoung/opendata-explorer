@@ -9,27 +9,50 @@ export function OnboardingModal() {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.4)",
+        background: "rgba(20, 24, 26, 0.55)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
-        fontFamily: "sans-serif",
+        padding: 16,
       }}
     >
-      <div style={{ background: "white", borderRadius: 10, padding: 24, width: 420, maxHeight: "90vh", overflowY: "auto" }}>
-        <h2 style={{ marginTop: 0 }}>Welcome to Opendata Explorer</h2>
-        <p style={{ fontSize: 13, color: "#495057" }}>
-          This app is entirely client-side (no backend). To chat, bring your own OpenAI-compatible, tool-calling
-          LLM endpoint and API key.
-        </p>
-        <p style={{ fontSize: 13, color: "#495057" }}>
-          Your API key is stored <strong>unencrypted in your browser's localStorage</strong> and is sent only to the
-          endpoint you configure below — never to any server we control. Providers that block direct browser CORS
-          requests (most cloud APIs accessed without a compatible proxy) are not supported; use a CORS-enabled local
-          server or a provider that allows browser calls (e.g. OpenRouter).
-        </p>
-        <CredentialsForm submitLabel="Save and start exploring" onSubmit={save} />
+      <div
+        className="card"
+        style={{ width: 440, maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--shadow-panel)" }}
+      >
+        <div
+          style={{
+            background: "var(--sign-green)",
+            padding: "16px 24px",
+            borderBottom: "3px solid var(--ink)",
+            borderTopLeftRadius: "var(--radius-md)",
+            borderTopRightRadius: "var(--radius-md)",
+          }}
+        >
+          <span className="sign-chip sign-chip--green" style={{ borderColor: "#fff" }}>
+            Opendata Explorer
+          </span>
+          <p
+            className="label"
+            style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, margin: "10px 0 0", letterSpacing: "0.05em" }}
+          >
+            Bring your own LLM to start exploring
+          </p>
+        </div>
+
+        <div style={{ padding: 24 }}>
+          <p style={{ fontSize: 13.5, color: "var(--ink-muted)", marginTop: 0 }}>
+            This app runs entirely in your browser — there's no backend of ours in the loop. To chat, connect an
+            OpenAI-compatible endpoint that supports tool calling.
+          </p>
+          <p style={{ fontSize: 13.5, color: "var(--ink-muted)" }}>
+            Your API key is stored <strong style={{ color: "var(--ink)" }}>unencrypted in localStorage</strong> and
+            is sent only to the endpoint you configure below. Providers that block direct browser requests aren't
+            supported — use a CORS-enabled local server or a browser-friendly provider like OpenRouter.
+          </p>
+          <CredentialsForm submitLabel="Save and start exploring" onSubmit={save} />
+        </div>
       </div>
     </div>
   );

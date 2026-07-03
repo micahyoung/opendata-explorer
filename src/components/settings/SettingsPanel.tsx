@@ -9,23 +9,27 @@ export function SettingsPanel() {
   const clear = useCredentials((s) => s.clear);
 
   return (
-    <div style={{ position: "absolute", top: 12, right: 12, zIndex: 900, fontFamily: "sans-serif" }}>
+    <div>
       <button
+        className="btn btn-ghost"
         onClick={() => setOpen((v) => !v)}
-        style={{ padding: "6px 12px", borderRadius: 6, background: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
+        style={{ background: "rgba(255,255,255,0.12)", borderColor: "rgba(255,255,255,0.5)", color: "#fff" }}
       >
         Settings
       </button>
       {open && (
         <div
+          className="card"
           style={{
-            marginTop: 6,
-            background: "white",
-            padding: 16,
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            zIndex: 900,
+            padding: 18,
             width: 340,
-            fontSize: 13,
+            maxWidth: "calc(100vw - 24px)",
+            maxHeight: "calc(100vh - 80px)",
+            overflowY: "auto",
           }}
         >
           <CredentialsForm
@@ -37,11 +41,12 @@ export function SettingsPanel() {
             }}
           />
           <button
+            className="btn btn-danger"
             onClick={() => {
               clear();
               setOpen(false);
             }}
-            style={{ width: "100%", marginTop: 8, padding: 8, color: "#c92a2a" }}
+            style={{ width: "100%", marginTop: 8 }}
           >
             Clear credentials
           </button>

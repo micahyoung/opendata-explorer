@@ -13,35 +13,34 @@ export function ChatPanel() {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <ToolCallCard />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          fontFamily: "sans-serif",
-          fontSize: 14,
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--paper-raised)" }}>
         <ThreadPrimitive.Root style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <ThreadPrimitive.Viewport style={{ flex: 1, overflowY: "auto", padding: 12 }}>
+          <ThreadPrimitive.Viewport style={{ flex: 1, overflowY: "auto", padding: 16 }}>
             <ThreadPrimitive.Empty>
-              <div style={{ color: "#868e96" }}>
-                Ask about NYC 311 requests or the 2015 street tree census — e.g. "show me noise complaints in
-                Queens" or "trees in Brooklyn with poor health".
+              <div>
+                <div className="label" style={{ color: "var(--sign-green)", fontSize: 12, marginBottom: 8 }}>
+                  Ask the map
+                </div>
+                <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+                  Try "show me noise complaints in Queens" or "trees in Brooklyn with poor health."
+                </p>
               </div>
             </ThreadPrimitive.Empty>
             <ThreadPrimitive.Messages
               components={{
                 UserMessage: () => (
                   <MessagePrimitive.Root>
-                    <div style={{ textAlign: "right", margin: "8px 0" }}>
+                    <div style={{ textAlign: "right", margin: "10px 0" }}>
                       <span
                         style={{
                           display: "inline-block",
-                          background: "#1971c2",
+                          background: "var(--sign-green)",
                           color: "white",
-                          borderRadius: 12,
-                          padding: "6px 12px",
+                          borderRadius: "var(--radius-lg) var(--radius-lg) 2px var(--radius-lg)",
+                          padding: "8px 14px",
+                          fontSize: 14,
+                          textAlign: "left",
+                          maxWidth: "88%",
                         }}
                       >
                         <MessagePrimitive.Parts />
@@ -51,7 +50,7 @@ export function ChatPanel() {
                 ),
                 AssistantMessage: () => (
                   <MessagePrimitive.Root>
-                    <div style={{ margin: "8px 0" }}>
+                    <div style={{ margin: "10px 0", fontSize: 14, lineHeight: 1.6, color: "var(--ink)" }}>
                       <MessagePrimitive.Parts />
                       <MessagePrimitive.Error />
                     </div>
@@ -63,16 +62,17 @@ export function ChatPanel() {
           <ComposerPrimitive.Root
             style={{
               display: "flex",
-              gap: 6,
-              padding: 12,
-              borderTop: "1px solid #e9ecef",
+              gap: 8,
+              padding: 14,
+              borderTop: "1px solid var(--line)",
             }}
           >
             <ComposerPrimitive.Input
               placeholder="Ask about 311 requests or street trees..."
-              style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #ced4da" }}
+              className="field-input"
+              style={{ flex: 1, resize: "none" }}
             />
-            <ComposerPrimitive.Send style={{ padding: "8px 14px", borderRadius: 6 }}>Send</ComposerPrimitive.Send>
+            <ComposerPrimitive.Send className="btn btn-primary">Send</ComposerPrimitive.Send>
           </ComposerPrimitive.Root>
         </ThreadPrimitive.Root>
       </div>

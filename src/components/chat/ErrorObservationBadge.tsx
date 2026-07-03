@@ -2,16 +2,18 @@ export function ErrorObservationBadge({ message }: { message: string }) {
   return (
     <div
       style={{
-        marginTop: 6,
         padding: "6px 10px",
-        borderRadius: 6,
-        background: "#fff0f0",
-        border: "1px solid #ffc9c9",
-        color: "#c92a2a",
+        borderRadius: "var(--radius-sm)",
+        background: "rgba(214, 90, 31, 0.1)",
+        border: "1px solid var(--alert-orange)",
+        color: "var(--alert-orange-dark)",
         fontSize: 12,
       }}
     >
-      Query failed, retrying: {message}
+      <span className="label" style={{ fontSize: 10.5 }}>
+        Retrying —{" "}
+      </span>
+      <span className="mono">{message}</span>
     </div>
   );
 }

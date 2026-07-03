@@ -8,6 +8,8 @@ const definition: DatasetDefinition = {
   description:
     "NYC 311 service requests from 2010 to present. Complaints and requests made by residents to city agencies, including type, location, and status.",
   geo: { mode: "native", field: "location" },
+  mapColor: "#d65a1f",
+  categoryField: "complaint_type",
   fields: [
     { name: "unique_key", type: "text", description: "Unique identifier for the request" },
     { name: "created_date", type: "floating_timestamp", description: "Date/time the request was created" },

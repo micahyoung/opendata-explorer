@@ -7,6 +7,8 @@ const definition: DatasetDefinition = {
   description:
     "Bus lane, bus stop, and double-parking violations captured by MTA's automated bus camera enforcement (ACE) program under NY State's expanded bus camera enforcement law. Covers violations detected by cameras mounted on buses and at bus stops.",
   geo: { mode: "native", field: "violation_georeference" },
+  mapColor: "#c8102e",
+  categoryField: "violation_type",
   fields: [
     { name: "violation_id", type: "text", description: "Unique identifier for the violation" },
     { name: "vehicle_id", type: "text", description: "Anonymized/obscured identifier for the offending vehicle" },

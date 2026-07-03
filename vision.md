@@ -7,7 +7,8 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 ## 2. Product Requirements
 ### Core Capabilities
 * **Conversational Interface:** A chat UI docked alongside the map within a single app shell (a persistent side-by-side rail, not a separate page) that accepts natural language queries and returns visual, geographic updates alongside text.
-* **Dynamic Data Rendering:** The ability to visualize thousands of data points (e.g., 311 service requests, tree census) in real-time as MapLibre GL JS layers.
+* **Dynamic Data Rendering:** The ability to visualize thousands of data points (e.g., 311 service requests, tree census) in real-time as MapLibre GL JS layers, surfacing the variation within a result set at a glance rather than just its location.
+* **Point-Level Inspection:** A user can inspect any individual rendered point's details directly, without needing to ask the LLM a follow-up question.
 * **Agentic Soft-Fail & Auto-Correction:** LLMs must be provided tool calls to test queries client-side. If a generated SoQL query fails (e.g., hallucinated schema columns), the client must catch the error, return it to the LLM, and prompt a self-correction without breaking the user experience.
 * **Grounded Result Summaries:** The LLM must never narrate what a successful query returned without evidence — its conversational recap should reflect the actual results, not a plausible-sounding guess.
 * **Grounded Location Resolution:** The LLM must never guess coordinates for a named address, intersection, or landmark from its own trained geographic knowledge — named places are resolved to real coordinates before they're used to filter a query.
@@ -53,8 +54,8 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The Socrata API returns a valid GeoJSON FeatureCollection.
 * The client resolves the tool call, passing the GeoJSON to the `react-map-gl` component.
 * The map smoothly animates (flies) to the bounding box of the data. 
-* MapLibre GL JS renders the new layer (e.g., orange dots for 311 requests, green for street trees — each dataset gets a fixed accent color) using WebGL over a free open-source basemap.
-* The LLM streams a conversational summary into the chat: *"I've mapped 1,000 noise complaints in Queens. You can click on any point to see its exact location."*
+* MapLibre GL JS renders the new layer using WebGL over a free open-source basemap.
+* The LLM streams a conversational summary into the chat: *"I've mapped 1,000 noise complaints in Queens."*
 
 **Step 5: Contextual Iteration**
 * The user types: *"Switch to trees instead — just the ones in Brooklyn with poor health."*

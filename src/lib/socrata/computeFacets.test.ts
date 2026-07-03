@@ -12,6 +12,8 @@ function makeDataset(fields: DatasetDefinition["fields"]): DatasetDefinition {
     geo: { mode: "native", field: "location" },
     fields,
     exemplars: [{ question: "test", soql: {} }],
+    mapColor: "#000000",
+    categoryField: fields[0].name,
   };
 }
 

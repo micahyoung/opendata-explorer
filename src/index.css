@@ -112,6 +112,20 @@ textarea {
   box-shadow: var(--shadow-card);
 }
 
+.maplibregl-popup-content {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  padding: 8px 10px;
+  font-family: var(--font-body);
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--paper-raised);
+  border-bottom-color: var(--paper-raised);
+}
+
 .field-label {
   display: block;
   margin-bottom: 6px;

@@ -8,6 +8,8 @@ const definition: DatasetDefinition = {
   description:
     "A point-in-time census of every street tree in NYC conducted in 2015 by volunteers and staff, including species, health, and location. Does not reflect trees planted or removed since 2015.",
   geo: { mode: "latlon", latField: "latitude", lonField: "longitude" },
+  mapColor: "#0b5d3b",
+  categoryField: "spc_common",
   fields: [
     { name: "tree_id", type: "text", description: "Unique identifier for the tree" },
     { name: "status", type: "text", description: "Tree status: 'Alive', 'Dead', or 'Stump'", facetable: true },

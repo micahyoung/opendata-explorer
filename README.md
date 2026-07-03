@@ -2,12 +2,13 @@
 
 A zero-backend, conversational GIS for NYC Open Data. Chat in plain language, and the app translates your request into a [Socrata](https://dev.socrata.com/) SoQL query, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to NYC's open data API.
 
-v1 ships with exactly four datasets:
+v1 ships with exactly five datasets:
 
 - **311 Service Requests** (`erm2-nwe9`)
 - **2015 Street Tree Census** (`uvpi-gqnh`)
 - **MTA Bus Automated Camera Enforcement Violations** (`kh8p-hcbm`)
 - **SF Street Tree List** (`tkzw-k3nq`)
+- **Austin Tree Inventory** (`wrik-xasw`)
 
 ## Quick start
 
@@ -63,7 +64,7 @@ Because this app calls your LLM endpoint directly from the browser with no proxy
 
 ## Socrata data access
 
-Data is fetched directly from each dataset's Socrata portal using the public SODA API. Datasets span multiple Socrata domains — `data.cityofnewyork.us`, `data.ny.gov`, and `data.sfgov.org` — and each dataset declares its own `domain` in its definition. Because Socrata app tokens are portal-specific (a token issued for one portal won't raise rate limits on another), Settings shows one optional app token input per distinct domain used by the current catalog, derived automatically from the dataset list. It's not required to use the app.
+Data is fetched directly from each dataset's Socrata portal using the public SODA API. Datasets span multiple Socrata domains — `data.cityofnewyork.us`, `data.ny.gov`, `data.sfgov.org`, and `data.austintexas.gov` — and each dataset declares its own `domain` in its definition. Because Socrata app tokens are portal-specific (a token issued for one portal won't raise rate limits on another), Settings shows one optional app token input per distinct domain used by the current catalog, derived automatically from the dataset list. It's not required to use the app.
 
 The client enforces a hard cap on `$limit` and a request timeout regardless of what the model requests, to keep the browser tab responsive.
 

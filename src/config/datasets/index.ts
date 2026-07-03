@@ -3,8 +3,15 @@ import serviceRequests311 from "./nyc-311-service-requests";
 import treeCensus from "./nyc-tree-census";
 import busLaneViolations from "./ny-bus-lane-violations";
 import sfStreetTreeList from "./sf-street-tree-list";
+import austinTreeInventory from "./austin-tree-inventory";
 
-export const datasets: DatasetDefinition[] = [serviceRequests311, treeCensus, busLaneViolations, sfStreetTreeList];
+export const datasets: DatasetDefinition[] = [
+  serviceRequests311,
+  treeCensus,
+  busLaneViolations,
+  sfStreetTreeList,
+  austinTreeInventory,
+];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];
 

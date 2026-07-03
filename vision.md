@@ -1,8 +1,8 @@
 
-rth-Star Design Document: Conversational GIS for NYC Open Data
+rth-Star Design Document: Conversational GIS for Civic Open Data
 
 ## 1. Vision & Overview
-To build a purely client-side, zero-backend "Conversational GIS" web application that democratizes access to NYC Open Data. By overlaying a natural language chat interface atop an interactive, high-performance map, users can query, filter, and visualize massive civic datasets without needing to understand SQL or navigate complex data portals. The architecture relies on an agentic "Action-Observation" loop to seamlessly map natural language to the Socrata Query Language (SoQL).
+To build a purely client-side, zero-backend "Conversational GIS" web application that democratizes access to civic open data. By overlaying a natural language chat interface atop an interactive, high-performance map, users can query, filter, and visualize massive civic datasets without needing to understand SQL or navigate complex data portals. The architecture relies on an agentic "Action-Observation" loop to seamlessly map natural language to the Socrata Query Language (SoQL). The curated dataset catalog is not tied to any single city or state — it spans whichever Socrata-hosted portals publish the highest-value data, evaluated dataset by dataset.
 
 ## 2. Product Requirements
 ### Core Capabilities
@@ -17,7 +17,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Zero-Backend Execution:** The application will be a static/client-side React app. There is no proprietary backend server mediating API requests.
 * **BYO-LLM (OpenAI-Compatible):** Users must provide their own API endpoint and API key. This ensures compatibility with OpenAI, OpenRouter, and local models (e.g., `llama.cpp`) to support maximum privacy and zero hosting costs.
 * **Dynamic Model Discovery:** The model picker is a dropdown populated from the provider's `GET /v1/models`, not a free-text field.
-* **BYO-Socrata Token:** Users will provide their own Socrata App Token to bypass unauthenticated IP rate limits, shifting all data API quotas to the user.
+* **BYO-Socrata Token:** Users will provide their own Socrata App Token(s) to bypass unauthenticated IP rate limits, shifting all data API quotas to the user. Since tokens are issued per Socrata portal, a user querying datasets from multiple portals brings a token for each one they want elevated limits on.
 * **Strict Browser Performance Safeguards:** Hard-coded limits (e.g., `$limit=5000`) and aggressive timeouts must be strictly enforced on the client side before Socrata requests execute to prevent massive GeoJSON payloads from crashing the browser tab.
 
 ## 3. General Architecture & Stack
@@ -27,7 +27,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 | **Frontend Framework** | React (Vite) | Pure static SPA, not Next.js — no server runtime to host, keeping the zero-backend posture literal. |
 | **Chat Component** | `assistant-ui` | Provides native Generative UI and tool-calling visualization. Connects seamlessly to the Vercel AI SDK. |
 | **AI Orchestration** | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`) | Handles LLM streaming and tool execution. BYO-LLM endpoints are called via the `/v1/responses` API, now supported across OpenAI, OpenRouter, and `llama-server`. |
-| **Data Source** | NYC Open Data (SODA API) | Natively supports structured `.geojson` responses from SoQL queries. Fetched entirely client-side. |
+| **Data Source** | Socrata Open Data (SODA API), multiple portals | Natively supports structured `.geojson` responses from SoQL queries. Fetched entirely client-side. |
 | **Map Engine** | MapLibre GL JS + `react-map-gl` | WebGL-accelerated rendering capable of handling dense point data smoothly. Avoids the billing liabilities of Mapbox and the performance bottlenecks of Leaflet. |
 | **State Management** | `localStorage` | Stores user credentials (BYO keys/endpoints) locally, maintaining the zero-backend privacy posture. |
 
@@ -37,12 +37,12 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The user loads the static web app.
 * They are greeted by an onboarding modal explaining the BYOK (Bring Your Own Key) architecture.
 * The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local Llama") which populates the Base URL.
-* The user enters their API Key and optional Socrata App Token, then picks a Model from a dropdown populated via the provider's `/v1/models`.
+* The user enters their API Key and optional Socrata App Token(s), then picks a Model from a dropdown populated via the provider's `/v1/models`.
 * Credentials are saved to `localStorage`.
 
 **Step 2: Intent Expression & Schema Injection**
 * The user types a query into the `assistant-ui` chat: *"Show me noise complaints in Queens."*
-* The Vercel AI SDK packages the message alongside a curated, declarative system prompt containing schemas and worked examples for the three supported v1 datasets (e.g., *Dataset ID: erm2-nwe9, Fields: complaint_type, borough, created_date, location*).
+* The Vercel AI SDK packages the message alongside a curated, declarative system prompt containing schemas and worked examples for the four supported v1 datasets (e.g., *Dataset ID: erm2-nwe9, Fields: complaint_type, borough, created_date, location*).
 * The payload is sent directly from the browser to the user's configured LLM endpoint.
 
 **Step 3: The Agentic SoQL Loop**
@@ -64,7 +64,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 ## 5. Architectural Guardrails (To Be Expanded in Implementation)
 
-* **Schema Scope:** To prevent context-window exhaustion and hallucination, the app will launch with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked question→SoQL examples. **v1 ships with three datasets: 311 Service Requests (`erm2-nwe9`), the 2015 Street Tree Census (`uvpi-gqnh`), and MTA Bus Automated Camera Enforcement (ACE) Violations (`kh8p-hcbm`)** — the last covering bus lane, bus stop, and double-parking violations captured under NY State's expanded bus camera enforcement law. Unlike the other two, it's published on NY State's Socrata portal (`data.ny.gov`) rather than NYC's, so curated datasets are no longer assumed to live on a single city-run domain. Additional datasets (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely.
+* **Schema Scope:** To prevent context-window exhaustion and hallucination, the app will launch with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked question→SoQL examples. **v1 ships with four datasets: 311 Service Requests (`erm2-nwe9`), the 2015 Street Tree Census (`uvpi-gqnh`), MTA Bus Automated Camera Enforcement (ACE) Violations (`kh8p-hcbm`), and the SF Street Tree List (`tkzw-k3nq`)** — the ACE dataset covers bus lane, bus stop, and double-parking violations captured under NY State's expanded bus camera enforcement law, and the SF dataset covers street trees maintained by DPW and other agencies in San Francisco. These are published across three different Socrata domains — `data.cityofnewyork.us`, `data.ny.gov`, and `data.sfgov.org` — so curated datasets are no longer assumed to live on a single city- or state-run domain. Additional datasets (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely.
 * **Result Grounding:** The curation principle extends past the query itself — which fields are meaningful to summarize about returned results is a curated property of each dataset, not inferred at runtime from a single query's results.
 * **Location Grounding:** Named places are resolved to real coordinates by a dedicated geocoding step before the SoQL fetch — the same tool-chaining pattern regardless of which dataset is ultimately queried, so the skill is taught once rather than duplicated per dataset.
 * **CORS Restrictions:** For local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.

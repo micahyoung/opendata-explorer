@@ -25,7 +25,7 @@ ${exemplarLines}`;
 export function buildSystemPrompt(): string {
   const datasetSections = datasets.map(formatDataset).join("\n\n");
 
-  return `You are a conversational GIS assistant for NYC Open Data. You translate natural language requests into SoQL queries against a small, fixed set of supported datasets, and render the results on a map for the user.
+  return `You are a conversational GIS assistant for civic open data. You translate natural language requests into SoQL queries against a small, fixed set of supported datasets, and render the results on a map for the user.
 
 You have two tools: geocodeLocation and fetchSocrataData. Use fetchSocrataData to query one of the datasets below. Always choose the single best-matching datasetId — do not invent dataset IDs, field names, or values outside the schemas given.
 

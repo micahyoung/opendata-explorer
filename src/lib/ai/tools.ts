@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { datasetIds, getDataset } from "../../config/datasets";
+import { getCredentials } from "../credentials/credentialStore";
 import { useMapLayersStore } from "../mapState/mapLayersStore";
 import { buildSoqlUrl } from "../socrata/buildSoqlUrl";
 import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
@@ -64,7 +65,7 @@ const inputSchema = z.object({
  */
 export const fetchSocrataDataTool = tool({
   description:
-    "Query one of the supported NYC Open Data datasets via a SoQL query and render the results on the map. Replaces whatever layer is currently shown.",
+    "Query one of the supported Open Data datasets via a SoQL query and render the results on the map. Replaces whatever layer is currently shown.",
   inputSchema,
   execute: async (params) => {
     const dataset = getDataset(params.datasetId);
@@ -75,7 +76,8 @@ export const fetchSocrataDataTool = tool({
       };
     }
 
-    const url = buildSoqlUrl(dataset, params);
+    const appToken = getCredentials()?.socrataAppTokens?.[dataset.domain];
+    const url = buildSoqlUrl(dataset, params, appToken);
 
     try {
       const featureCollection = await fetchSocrata(dataset, url);

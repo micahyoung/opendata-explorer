@@ -27,7 +27,8 @@ export function ChatPanel() {
                   Ask the map
                 </div>
                 <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-                  Try "show me noise complaints in Queens" or "trees in Brooklyn with poor health."
+                  Try "show me noise complaints in Queens," "trees in Brooklyn with poor health," or "DPW-maintained
+                  trees in San Francisco."
                 </p>
               </div>
             </ThreadPrimitive.Empty>

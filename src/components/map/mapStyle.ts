@@ -5,7 +5,7 @@
 export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
 export const INITIAL_VIEW_STATE = {
-  longitude: -73.98,
-  latitude: 40.75,
-  zoom: 10,
+  longitude: -98.5,
+  latitude: 39.5,
+  zoom: 3.5,
 };

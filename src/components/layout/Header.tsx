@@ -22,7 +22,7 @@ export function Header({ children }: { children?: ReactNode }) {
           className="mono header-tagline"
           style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", letterSpacing: "0.02em" }}
         >
-          NYC 311 · STREET TREE CENSUS
+          311 · STREET TREES · BUS VIOLATIONS
         </span>
       </div>
       <div style={{ position: "relative" }}>{children}</div>

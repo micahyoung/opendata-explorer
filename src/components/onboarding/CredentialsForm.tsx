@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { datasets } from "../../config/datasets";
 import { providerPresets } from "../../config/providerPresets";
 import { fetchModels } from "../../lib/ai/fetchModels";
 import type { Credentials } from "../../types/credentials";
 import { ModelSelect } from "./ModelSelect";
 import { ProviderPresetSelect } from "./ProviderPresetSelect";
+
+const socrataDomains = [...new Set(datasets.map((d) => d.domain))];
 
 interface Props {
   initial?: Credentials;
@@ -25,7 +28,9 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
   const [baseURL, setBaseURL] = useState(initial?.baseURL ?? providerPresets[0].baseURL);
   const [apiKey, setApiKey] = useState(initial?.apiKey ?? "");
   const [model, setModel] = useState(initial?.model ?? providerPresets[0].defaultModel);
-  const [socrataAppToken, setSocrataAppToken] = useState(initial?.socrataAppToken ?? "");
+  const [socrataAppTokens, setSocrataAppTokens] = useState<Record<string, string>>(
+    initial?.socrataAppTokens ?? {}
+  );
   const [error, setError] = useState("");
   const [modelList, setModelList] = useState<ModelListState>({ status: "idle" });
 
@@ -82,7 +87,14 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
       return;
     }
     setError("");
-    onSubmit({ provider: presetId, baseURL, apiKey, model, socrataAppToken: socrataAppToken || undefined });
+    const tokenEntries = Object.entries(socrataAppTokens).filter(([, v]) => v.trim() !== "");
+    onSubmit({
+      provider: presetId,
+      baseURL,
+      apiKey,
+      model,
+      socrataAppTokens: tokenEntries.length > 0 ? Object.fromEntries(tokenEntries) : undefined,
+    });
   }
 
   const preset = providerPresets.find((p) => p.id === presetId);
@@ -138,10 +150,25 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
         </>
       )}
 
-      <label style={{ display: "block", marginBottom: 16 }}>
-        <span className="field-label">Socrata app token (optional)</span>
-        <input className="field-input" value={socrataAppToken} onChange={(e) => setSocrataAppToken(e.target.value)} />
-      </label>
+      {socrataDomains.map((domain) => {
+        const datasetNames = datasets
+          .filter((d) => d.domain === domain)
+          .map((d) => d.name)
+          .join(", ");
+        return (
+          <label key={domain} style={{ display: "block", marginBottom: 16 }}>
+            <span className="field-label">Socrata app token for {domain} (optional)</span>
+            <input
+              className="field-input"
+              type="password"
+              autoComplete="off"
+              value={socrataAppTokens[domain] ?? ""}
+              onChange={(e) => setSocrataAppTokens((prev) => ({ ...prev, [domain]: e.target.value }))}
+            />
+            <p className="field-hint">Used by: {datasetNames}</p>
+          </label>
+        );
+      })}
 
       {error && (
         <p style={{ color: "var(--alert-orange-dark)", fontSize: 13, marginTop: -6, marginBottom: 12 }}>{error}</p>

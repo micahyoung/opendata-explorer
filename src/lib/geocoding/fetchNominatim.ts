@@ -2,9 +2,6 @@ import { FETCH_TIMEOUT_MS } from "../../config/constants";
 import type { GeocodeResult } from "../../types/geocodeTool";
 import { NominatimHttpError, TimeoutError } from "../utils/errors";
 
-// Biases/restricts matches to roughly the NYC five-borough area.
-const NYC_VIEWBOX = "-74.26,40.92,-73.68,40.49";
-
 // A bare point/POI result gets padded up to roughly this floor
 // (~1.5 NYC blocks) so a bounding-box query downstream has something to match.
 const MIN_HALF_SPAN_LAT = 0.0015;
@@ -18,7 +15,7 @@ interface NominatimResponseItem {
 }
 
 export async function fetchNominatim(query: string): Promise<GeocodeResult> {
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=1&countrycodes=us&viewbox=${NYC_VIEWBOX}&bounded=1`;
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=1&countrycodes=us`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);

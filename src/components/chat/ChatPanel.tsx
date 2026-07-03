@@ -9,6 +9,8 @@ import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
 import { GeocodeCard } from "./GeocodeCard";
 import { ToolCallCard } from "./ToolCallCard";
 
+const MarkdownText = () => <MarkdownTextPrimitive />;
+
 export function ChatPanel() {
   const runtime = useOpenDataChatRuntime();
 
@@ -54,7 +56,7 @@ export function ChatPanel() {
                 AssistantMessage: () => (
                   <MessagePrimitive.Root>
                     <div style={{ margin: "10px 0", fontSize: 14, lineHeight: 1.6, color: "var(--ink)" }}>
-                      <MessagePrimitive.Parts components={{ Text: MarkdownTextPrimitive }} />
+                      <MessagePrimitive.Parts components={{ Text: MarkdownText }} />
                       <MessagePrimitive.Error />
                     </div>
                   </MessagePrimitive.Root>

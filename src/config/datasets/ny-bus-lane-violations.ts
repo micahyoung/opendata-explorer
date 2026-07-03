@@ -12,9 +12,9 @@ const definition: DatasetDefinition = {
     { name: "vehicle_id", type: "text", description: "Anonymized/obscured identifier for the offending vehicle" },
     { name: "first_occurrence", type: "floating_timestamp", description: "Date/time the violation was first detected" },
     { name: "last_occurrence", type: "floating_timestamp", description: "Date/time the violation was last detected (for repeated/continuing violations)" },
-    { name: "violation_status", type: "text", description: "Status of the violation, e.g. 'VIOLATION ISSUED', 'EXEMPT'" },
-    { name: "violation_type", type: "text", description: "Type of violation, e.g. 'MOBILE BUS STOP', 'MOBILE BUS LANE', 'DOUBLE PARKED'" },
-    { name: "bus_route_id", type: "text", description: "MTA bus route associated with the enforcement camera, e.g. 'B44+', 'M15+' (a trailing '+' denotes a route variant, so match with LIKE rather than exact equality)" },
+    { name: "violation_status", type: "text", description: "Status of the violation, e.g. 'VIOLATION ISSUED', 'EXEMPT'", facetable: true },
+    { name: "violation_type", type: "text", description: "Type of violation, e.g. 'MOBILE BUS STOP', 'MOBILE BUS LANE', 'DOUBLE PARKED'", facetable: true },
+    { name: "bus_route_id", type: "text", description: "MTA bus route associated with the enforcement camera, e.g. 'B44+', 'M15+' (a trailing '+' denotes a route variant, so match with LIKE rather than exact equality)", facetable: true },
     { name: "stop_name", type: "text", description: "Name of the nearest bus stop" },
     { name: "violation_latitude", type: "number", description: "Latitude of the violation location" },
     { name: "violation_longitude", type: "number", description: "Longitude of the violation location" },
@@ -49,6 +49,14 @@ const definition: DatasetDefinition = {
       question: "Bus stop violations issued citywide",
       soql: {
         where: "violation_type like '%BUS STOP%' AND violation_status = 'VIOLATION ISSUED'",
+        order: "first_occurrence DESC",
+        limit: 1000,
+      },
+    },
+    {
+      question: "Which routes have even a single bus lane violation?",
+      soql: {
+        where: "violation_type like '%BUS LANE%'",
         order: "first_occurrence DESC",
         limit: 1000,
       },

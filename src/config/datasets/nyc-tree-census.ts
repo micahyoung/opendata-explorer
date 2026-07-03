@@ -10,11 +10,11 @@ const definition: DatasetDefinition = {
   geo: { mode: "latlon", latField: "latitude", lonField: "longitude" },
   fields: [
     { name: "tree_id", type: "text", description: "Unique identifier for the tree" },
-    { name: "status", type: "text", description: "Tree status: 'Alive', 'Dead', or 'Stump'" },
-    { name: "health", type: "text", description: "Health rating for living trees: 'Good', 'Fair', or 'Poor'" },
-    { name: "spc_common", type: "text", description: "Common species name, e.g. 'red maple', 'honeylocust', 'London planetree'" },
+    { name: "status", type: "text", description: "Tree status: 'Alive', 'Dead', or 'Stump'", facetable: true },
+    { name: "health", type: "text", description: "Health rating for living trees: 'Good', 'Fair', or 'Poor'", facetable: true },
+    { name: "spc_common", type: "text", description: "Common species name, e.g. 'red maple', 'honeylocust', 'London planetree'", facetable: true },
     { name: "spc_latin", type: "text", description: "Latin species name" },
-    { name: "boroname", type: "text", description: "Borough name, one of: Manhattan, Bronx, Brooklyn, Queens, Staten Island" },
+    { name: "boroname", type: "text", description: "Borough name, one of: Manhattan, Bronx, Brooklyn, Queens, Staten Island", facetable: true },
     { name: "zip_city", type: "text", description: "Postal city/neighborhood name" },
     { name: "zipcode", type: "text", description: "ZIP code of the tree location" },
     { name: "address", type: "text", description: "Nearest street address" },
@@ -48,6 +48,13 @@ const definition: DatasetDefinition = {
       question: "Trees with poor health citywide",
       soql: {
         where: "health = 'Poor'",
+        limit: 1000,
+      },
+    },
+    {
+      question: "Which species show up with even one dead tree in Queens?",
+      soql: {
+        where: "status = 'Dead' AND boroname = 'Queens'",
         limit: 1000,
       },
     },

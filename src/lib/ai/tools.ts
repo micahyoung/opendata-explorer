@@ -3,6 +3,7 @@ import { z } from "zod";
 import { datasetIds, getDataset } from "../../config/datasets";
 import { useMapLayersStore } from "../mapState/mapLayersStore";
 import { buildSoqlUrl } from "../socrata/buildSoqlUrl";
+import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
 import { SocrataHttpError, TimeoutError } from "../utils/errors";
 
@@ -50,12 +51,16 @@ export const fetchSocrataDataTool = tool({
 
       useMapLayersStore.getState().setActiveLayer({ datasetId: dataset.id, featureCollection });
 
+      const facets = computeFacets(dataset, featureCollection);
+      const facetSummary = formatFacetSummary(facets);
+
       return {
         success: true as const,
         datasetId: dataset.id,
         where: params.where,
         featureCount: featureCollection.features.length,
-        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}`,
+        facets,
+        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}${facetSummary ? `. Field breakdown — ${facetSummary}` : ""}`,
       };
     } catch (err) {
       if (err instanceof SocrataHttpError) {

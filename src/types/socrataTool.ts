@@ -1,4 +1,4 @@
-import type { FeatureCollection } from "geojson";
+import type { FieldFacet } from "../lib/socrata/computeFacets";
 
 export interface SocrataQueryParams {
   datasetId: string;
@@ -10,11 +10,11 @@ export interface SocrataQueryParams {
 
 export interface SocrataQuerySuccess {
   success: true;
-  featureCollection: FeatureCollection;
   featureCount: number;
   datasetId: string;
   where?: string;
-  requestUrl: string;
+  facets: FieldFacet[];
+  breadcrumb: string;
 }
 
 export interface SocrataQueryFailure {
@@ -23,8 +23,7 @@ export interface SocrataQueryFailure {
     kind: "validation" | "http" | "empty";
     message: string;
   };
-  datasetId: string;
-  requestUrl?: string;
+  datasetId?: string;
 }
 
 export type SocrataQueryResult = SocrataQuerySuccess | SocrataQueryFailure;

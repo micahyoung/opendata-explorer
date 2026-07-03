@@ -4,6 +4,7 @@ export const datasetFieldSchema = z.object({
   name: z.string(),
   type: z.string(),
   description: z.string(),
+  facetable: z.boolean().optional(),
 });
 export type DatasetField = z.infer<typeof datasetFieldSchema>;
 

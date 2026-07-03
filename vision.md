@@ -39,7 +39,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 **Step 2: Intent Expression & Schema Injection**
 * The user types a query into the `assistant-ui` chat: *"Show me noise complaints in Queens."*
-* The Vercel AI SDK packages the message alongside a curated, declarative system prompt containing schemas and worked examples for the two supported v1 datasets (e.g., *Dataset ID: erm2-nwe9, Fields: complaint_type, borough, created_date, location*).
+* The Vercel AI SDK packages the message alongside a curated, declarative system prompt containing schemas and worked examples for the three supported v1 datasets (e.g., *Dataset ID: erm2-nwe9, Fields: complaint_type, borough, created_date, location*).
 * The payload is sent directly from the browser to the user's configured LLM endpoint.
 
 **Step 3: The Agentic SoQL Loop**
@@ -61,7 +61,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 ## 5. Architectural Guardrails (To Be Expanded in Implementation)
 
-* **Schema Scope:** To prevent context-window exhaustion and hallucination, the app will launch with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked question→SoQL examples. **v1 ships with exactly two datasets: 311 Service Requests (`erm2-nwe9`) and the 2015 Street Tree Census (`uvpi-gqnh`)**, chosen to prove out the full architecture end-to-end before widening. Additional datasets (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely.
+* **Schema Scope:** To prevent context-window exhaustion and hallucination, the app will launch with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked question→SoQL examples. **v1 ships with three datasets: 311 Service Requests (`erm2-nwe9`), the 2015 Street Tree Census (`uvpi-gqnh`), and MTA Bus Automated Camera Enforcement (ACE) Violations (`kh8p-hcbm`)** — the last covering bus lane, bus stop, and double-parking violations captured under NY State's expanded bus camera enforcement law. Unlike the other two, it's published on NY State's Socrata portal (`data.ny.gov`) rather than NYC's, so curated datasets are no longer assumed to live on a single city-run domain. Additional datasets (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely.
 * **CORS Restrictions:** For local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1. MapLibre's native layer styling will handle all rendering.
 * **Low Reasoning Effort & Verbosity by Default:** For models that support it, requests default to low reasoning effort and low text verbosity, since SoQL generation doesn't need deep reasoning; unsupported params are soft-failed and dropped rather than erroring.

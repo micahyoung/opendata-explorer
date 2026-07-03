@@ -1,4 +1,4 @@
-import { DEFAULT_LIMIT, SOCRATA_DOMAIN, SOCRATA_MAX_LIMIT } from "../../config/constants";
+import { DEFAULT_LIMIT, SOCRATA_MAX_LIMIT } from "../../config/constants";
 import type { DatasetDefinition } from "../../config/datasets";
 import type { SocrataQueryParams } from "../../types/socrataTool";
 
@@ -11,7 +11,7 @@ export function buildSoqlUrl(dataset: DatasetDefinition, params: SocrataQueryPar
   const clampedLimit = Math.min(params.limit ?? DEFAULT_LIMIT, SOCRATA_MAX_LIMIT);
 
   const endpointSuffix = dataset.geo.mode === "native" ? "geojson" : "json";
-  const url = new URL(`https://${SOCRATA_DOMAIN}/resource/${dataset.id}.${endpointSuffix}`);
+  const url = new URL(`https://${dataset.domain}/resource/${dataset.id}.${endpointSuffix}`);
 
   const select = buildSelect(dataset, params.select);
   if (select) url.searchParams.set("$select", select);

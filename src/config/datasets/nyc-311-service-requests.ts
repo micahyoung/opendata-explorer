@@ -1,7 +1,9 @@
+import { SOCRATA_DOMAIN } from "../constants";
 import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.schema";
 
 const definition: DatasetDefinition = {
   id: "erm2-nwe9",
+  domain: SOCRATA_DOMAIN,
   name: "311 Service Requests",
   description:
     "NYC 311 service requests from 2010 to present. Complaints and requests made by residents to city agencies, including type, location, and status.",

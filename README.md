@@ -2,10 +2,11 @@
 
 A zero-backend, conversational GIS for NYC Open Data. Chat in plain language, and the app translates your request into a [Socrata](https://dev.socrata.com/) SoQL query, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to NYC's open data API.
 
-v1 ships with exactly two datasets:
+v1 ships with exactly three datasets:
 
 - **311 Service Requests** (`erm2-nwe9`)
 - **2015 Street Tree Census** (`uvpi-gqnh`)
+- **MTA Bus Automated Camera Enforcement Violations** (`kh8p-hcbm`)
 
 ## Quick start
 
@@ -61,7 +62,7 @@ Because this app calls your LLM endpoint directly from the browser with no proxy
 
 ## Socrata data access
 
-Data is fetched directly from `data.cityofnewyork.us` using the public SODA API. You can optionally supply a Socrata App Token in Settings to raise your rate limits above the unauthenticated tier; it's not required to use the app.
+Data is fetched directly from each dataset's Socrata portal using the public SODA API. Most datasets are hosted on `data.cityofnewyork.us`, but datasets can come from other Socrata domains too — e.g. the bus lane violations dataset is published on NY State's portal, `data.ny.gov`. Each dataset declares its own `domain` in its definition. You can optionally supply a Socrata App Token in Settings to raise your rate limits above the unauthenticated tier; it's not required to use the app. Note that Socrata app tokens are portal-specific, so a token issued for one portal (e.g. NYC's) won't raise rate limits on another (e.g. NY State's).
 
 The client enforces a hard cap on `$limit` and a request timeout regardless of what the model requests, to keep the browser tab responsive.
 

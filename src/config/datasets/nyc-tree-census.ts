@@ -1,7 +1,9 @@
+import { SOCRATA_DOMAIN } from "../constants";
 import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.schema";
 
 const definition: DatasetDefinition = {
   id: "uvpi-gqnh",
+  domain: SOCRATA_DOMAIN,
   name: "2015 Street Tree Census",
   description:
     "A point-in-time census of every street tree in NYC conducted in 2015 by volunteers and staff, including species, health, and location. Does not reflect trees planted or removed since 2015.",

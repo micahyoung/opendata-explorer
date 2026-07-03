@@ -6,6 +6,7 @@
 export const DATASET_COLORS: Record<string, string> = {
   "erm2-nwe9": "#d65a1f", // 311 Service Requests — alert orange
   "uvpi-gqnh": "#0b5d3b", // 2015 Street Tree Census — sign green
+  "kh8p-hcbm": "#c8102e", // MTA Bus ACE Violations — bus lane red
 };
 
 export const DEFAULT_DATASET_COLOR = "#14181a";

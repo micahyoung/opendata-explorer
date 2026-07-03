@@ -32,6 +32,7 @@ export type GeoConfig = z.infer<typeof geoConfigSchema>;
 
 export const datasetDefinitionSchema = z.object({
   id: z.string().describe("Socrata dataset (resource) ID, e.g. erm2-nwe9"),
+  domain: z.string().describe("Socrata portal domain hosting this dataset, e.g. data.cityofnewyork.us"),
   name: z.string(),
   description: z.string(),
   geo: geoConfigSchema,

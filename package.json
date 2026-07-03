@@ -14,6 +14,7 @@
     "@ai-sdk/openai": "^3.0.80",
     "@assistant-ui/react": "^0.14.24",
     "@assistant-ui/react-ai-sdk": "^1.3.38",
+    "@assistant-ui/react-markdown": "^0.14.5",
     "ai": "^6.0.219",
     "maplibre-gl": "^5.24.0",
     "react": "^19.2.7",

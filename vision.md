@@ -10,6 +10,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Dynamic Data Rendering:** The ability to visualize thousands of data points (e.g., 311 service requests, tree census) in real-time as MapLibre GL JS layers.
 * **Agentic Soft-Fail & Auto-Correction:** LLMs must be provided tool calls to test queries client-side. If a generated SoQL query fails (e.g., hallucinated schema columns), the client must catch the error, return it to the LLM, and prompt a self-correction without breaking the user experience.
 * **Grounded Result Summaries:** The LLM must never narrate what a successful query returned without evidence — its conversational recap should reflect the actual results, not a plausible-sounding guess.
+* **Grounded Location Resolution:** The LLM must never guess coordinates for a named address, intersection, or landmark from its own trained geographic knowledge — named places are resolved to real coordinates before they're used to filter a query.
 
 ### Technical Constraints & "Bring-Your-Own" Architecture
 * **Zero-Backend Execution:** The application will be a static/client-side React app. There is no proprietary backend server mediating API requests.
@@ -44,7 +45,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The payload is sent directly from the browser to the user's configured LLM endpoint.
 
 **Step 3: The Agentic SoQL Loop**
-* The LLM identifies the correct dataset and formulates a SoQL query. It triggers the `fetchSocrataData` tool call.
+* The LLM identifies the correct dataset and formulates a SoQL query. If the request names a specific address, intersection, or landmark rather than a value already covered by the schema (e.g. a borough), the LLM first resolves it to real coordinates via a geocoding tool call, then uses those coordinates in the query. It triggers the `fetchSocrataData` tool call.
 * **Validation:** The client intercepts the tool call. It strictly enforces a `$limit` parameter and runs the fetch request against the Socrata API.
 * *(Soft-Fail Scenario)*: If Socrata returns a 400 Bad Request (e.g., misspelled column), the client intercepts it and feeds the error back to the LLM: *"Observation: Column 'borugh' does not exist."* The LLM corrects the typo and tries again.
 
@@ -64,6 +65,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 
 * **Schema Scope:** To prevent context-window exhaustion and hallucination, the app will launch with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked question→SoQL examples. **v1 ships with three datasets: 311 Service Requests (`erm2-nwe9`), the 2015 Street Tree Census (`uvpi-gqnh`), and MTA Bus Automated Camera Enforcement (ACE) Violations (`kh8p-hcbm`)** — the last covering bus lane, bus stop, and double-parking violations captured under NY State's expanded bus camera enforcement law. Unlike the other two, it's published on NY State's Socrata portal (`data.ny.gov`) rather than NYC's, so curated datasets are no longer assumed to live on a single city-run domain. Additional datasets (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely.
 * **Result Grounding:** The curation principle extends past the query itself — which fields are meaningful to summarize about returned results is a curated property of each dataset, not inferred at runtime from a single query's results.
+* **Location Grounding:** Named places are resolved to real coordinates by a dedicated geocoding step before the SoQL fetch — the same tool-chaining pattern regardless of which dataset is ultimately queried, so the skill is taught once rather than duplicated per dataset.
 * **CORS Restrictions:** For local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1. MapLibre's native layer styling will handle all rendering.
 * **Low Reasoning Effort & Verbosity by Default:** For models that support it, requests default to low reasoning effort and low text verbosity, since SoQL generation doesn't need deep reasoning; unsupported params are soft-failed and dropped rather than erroring.

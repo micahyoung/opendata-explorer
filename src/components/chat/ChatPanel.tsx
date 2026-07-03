@@ -5,6 +5,7 @@ import {
   ThreadPrimitive,
 } from "@assistant-ui/react";
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
+import { GeocodeCard } from "./GeocodeCard";
 import { ToolCallCard } from "./ToolCallCard";
 
 export function ChatPanel() {
@@ -13,6 +14,7 @@ export function ChatPanel() {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <ToolCallCard />
+      <GeocodeCard />
       <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--paper-raised)" }}>
         <ThreadPrimitive.Root style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <ThreadPrimitive.Viewport style={{ flex: 1, overflowY: "auto", padding: 16 }}>

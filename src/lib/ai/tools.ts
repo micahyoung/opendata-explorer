@@ -5,7 +5,46 @@ import { useMapLayersStore } from "../mapState/mapLayersStore";
 import { buildSoqlUrl } from "../socrata/buildSoqlUrl";
 import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
-import { SocrataHttpError, TimeoutError } from "../utils/errors";
+import { fetchNominatim } from "../geocoding/fetchNominatim";
+import { NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
+
+const geocodeInputSchema = z.object({
+  query: z
+    .string()
+    .describe(
+      "A free-text place description to geocode, e.g. '34th Avenue and 72nd Street, Queens, NY' or a landmark name. Include borough/city context when known."
+    ),
+});
+
+/**
+ * Resolves a named place to real coordinates via the public Nominatim
+ * (OpenStreetMap) API, so the model isn't left guessing lat/lon literals
+ * from trained-in geography knowledge. Soft-fails (notFound) are returned
+ * so the model sees them as an observation; network/timeout failures are
+ * thrown, matching fetchSocrataDataTool's convention.
+ */
+export const geocodeLocationTool = tool({
+  description:
+    "Resolve a named address, intersection, or landmark to a lat/lon bounding box. Call this before fetchSocrataData when the user names a specific place that isn't already expressible as a categorical field value (borough, ZIP, etc.).",
+  inputSchema: geocodeInputSchema,
+  execute: async (params) => {
+    try {
+      return await fetchNominatim(params.query);
+    } catch (err) {
+      if (err instanceof NominatimHttpError) {
+        return {
+          success: false as const,
+          query: params.query,
+          error: { kind: "http" as const, message: `Nominatim rejected the request (HTTP ${err.status}): ${err.body ?? err.message}` },
+        };
+      }
+      if (err instanceof TimeoutError) {
+        throw err; // unrecoverable: surfaces as a chat-level error
+      }
+      throw err;
+    }
+  },
+});
 
 const inputSchema = z.object({
   datasetId: z.enum(datasetIds).describe("The Socrata dataset ID to query. Must be one of the supported datasets."),
@@ -79,5 +118,6 @@ export const fetchSocrataDataTool = tool({
 });
 
 export const tools = {
+  geocodeLocation: geocodeLocationTool,
   fetchSocrataData: fetchSocrataDataTool,
 };

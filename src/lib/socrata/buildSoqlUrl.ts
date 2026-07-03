@@ -25,6 +25,7 @@ export function buildSoqlUrl(dataset: DatasetDefinition, params: SocrataQueryPar
 
 function buildSelect(dataset: DatasetDefinition, requestedSelect?: string): string | undefined {
   if (!requestedSelect) return undefined;
+  if (requestedSelect.trim() === "*") return undefined; // "*" already selects every column, including geo fields
 
   const requestedFields = requestedSelect.split(",").map((f) => f.trim().toLowerCase());
   const missingGeoFields = requiredGeoFields(dataset).filter(

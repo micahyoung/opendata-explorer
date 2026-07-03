@@ -62,9 +62,9 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bus stop violations in Williamsburg",
+      question: "Bus stop violations at a specific stop",
       soql: {
-        where: "violation_type like '%BUS STOP%' AND violation_latitude between 40.700 and 40.727 AND violation_longitude between -73.966 and -73.933",
+        where: "violation_type like '%BUS STOP%' AND stop_name like '%FLUSHING AV%'",
         order: "first_occurrence DESC",
         limit: 1000,
       },

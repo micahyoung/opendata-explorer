@@ -1,6 +1,6 @@
 # Opendata Explorer
 
-A zero-backend, conversational GIS for NYC Open Data. Chat in plain language, and the app translates your request into a [Socrata](https://dev.socrata.com/) SoQL query, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to NYC's open data API.
+A zero-backend, conversational GIS for civic open data. Chat in plain language, and the app translates your request into a [Socrata](https://dev.socrata.com/) SoQL query, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to each dataset's Socrata portal.
 
 v1 ships with exactly fourteen datasets:
 

@@ -64,6 +64,14 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "Bus lane violations near Barclays Center",
+      soql: {
+        where: "violation_type like '%BUS LANE%' AND within_circle(violation_georeference, 40.6852, -73.9764, 1500)",
+        order: "first_occurrence DESC",
+        limit: 1000,
+      },
+    },
+    {
       question: "Bus stop violations at a specific stop",
       soql: {
         where: "violation_type like '%BUS STOP%' AND stop_name like '%FLUSHING AV%'",

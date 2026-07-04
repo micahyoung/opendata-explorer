@@ -62,6 +62,14 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Potholes near Millennium Park",
+      soql: {
+        where: "sr_type = 'Pothole in Street Complaint' AND within_circle(location, 41.8826, -87.6226, 800)",
+        order: "created_date DESC",
+        limit: 1000,
+      },
+    },
   ],
 };
 

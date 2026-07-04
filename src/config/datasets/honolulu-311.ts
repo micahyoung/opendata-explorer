@@ -55,6 +55,14 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "Parking issues near Ala Moana Center",
+      soql: {
+        where: "requesttype like '%Parking%' AND within_circle(location, 21.2916, -157.8420, 3000)",
+        order: "datecreated DESC",
+        limit: 1000,
+      },
+    },
+    {
       question: "Reports still submitted or in process",
       soql: {
         where: "statustype = 'Submitted' OR statustype = 'InProcess'",

@@ -37,9 +37,9 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Open service requests in Northside",
+      question: "Open service requests in Westwood",
       soql: {
-        where: "sr_status_flag = 'OPEN' AND neighborhood = 'NORTHSIDE'",
+        where: "sr_status_flag = 'OPEN' AND neighborhood = 'WESTWOOD'",
         order: "date_created DESC",
         limit: 1000,
       },
@@ -48,6 +48,15 @@ const definition: DatasetDefinition = {
       question: "Tall grass and weeds complaints on private property",
       soql: {
         where: "sr_type_desc = 'TALL GRASS/WEEDS, PRIVATE PROP'",
+        order: "date_created DESC",
+        limit: 1000,
+      },
+    },
+    {
+      question: "Potholes near Findlay Market",
+      soql: {
+        where:
+          "sr_type_desc = 'POTHOLE, REPAIR' AND latitude between 39.1045 and 39.1261 AND longitude between -84.5329 and -84.5052",
         order: "date_created DESC",
         limit: 1000,
       },

@@ -35,9 +35,9 @@ const definition: DatasetDefinition = {
   ],
   exemplars: [
     {
-      question: "Graffiti concerns reported in the Beltline",
+      question: "Graffiti concerns reported in the Downtown Commercial Core",
       soql: {
-        where: "service_name = 'Corporate - Graffiti Concerns' AND comm_name = 'BELTLINE'",
+        where: "service_name = 'Corporate - Graffiti Concerns' AND comm_name = 'DOWNTOWN COMMERCIAL CORE'",
         order: "requested_date DESC",
         limit: 1000,
       },
@@ -62,6 +62,15 @@ const definition: DatasetDefinition = {
       question: "Snow and ice on sidewalk complaints in Bowness",
       soql: {
         where: "service_name = 'Bylaw - Snow and Ice on Sidewalk' AND comm_name = 'BOWNESS'",
+        order: "requested_date DESC",
+        limit: 1000,
+      },
+    },
+    {
+      question: "Noise concerns in the Beltline every Canada Day since 2020",
+      soql: {
+        where:
+          "service_name = 'Bylaw - Noise Concerns' AND within_circle(point, 51.0404978, -114.0725934, 1200) AND date_extract_m(requested_date) = 7 AND date_extract_d(requested_date) = 1 AND requested_date >= '2020-01-01T00:00:00'",
         order: "requested_date DESC",
         limit: 1000,
       },

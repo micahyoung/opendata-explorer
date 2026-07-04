@@ -58,9 +58,26 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "Bulky item requests in Boyle Heights",
+      soql: {
+        where: "requesttype = 'Bulky Items' AND ncname = 'Boyle Heights'",
+        order: "createddate DESC",
+        limit: 1000,
+      },
+    },
+    {
       question: "Illegal dumping pickups handled by LASAN",
       soql: {
         where: "requesttype = 'Illegal Dumping Pickup' AND owner = 'LASAN'",
+        order: "createddate DESC",
+        limit: 1000,
+      },
+    },
+    {
+      question: "Bulky item requests near Hollywood on the first of each month in 2025",
+      soql: {
+        where:
+          "requesttype = 'Bulky Items' AND within_circle(location, 34.0980031, -118.3295230, 2000) AND date_extract_d(createddate) = 1 AND createddate >= '2025-01-01T00:00:00' AND createddate < '2026-01-01T00:00:00'",
         order: "createddate DESC",
         limit: 1000,
       },

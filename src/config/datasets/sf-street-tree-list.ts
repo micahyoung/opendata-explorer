@@ -52,6 +52,13 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "London Plane trees near Golden Gate Park",
+      soql: {
+        where: "qspecies like '%London Plane%' AND within_circle(location, 37.7694, -122.4862, 1500)",
+        limit: 1000,
+      },
+    },
+    {
       question: "Large privately-maintained trees",
       soql: {
         where: "qcaretaker = 'Private' AND dbh > 24",

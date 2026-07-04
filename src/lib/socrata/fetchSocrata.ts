@@ -31,11 +31,27 @@ export async function fetchSocrata(dataset: DatasetDefinition, url: string): Pro
   }
 
   if (dataset.geo.mode === "native") {
-    return (await response.json()) as FeatureCollection;
+    const collection = (await response.json()) as FeatureCollection;
+    return {
+      ...collection,
+      features: collection.features.filter((feature) => !isNullIslandFeature(feature)),
+    };
   }
 
   const rows = (await response.json()) as Record<string, string>[];
   return rowsToFeatureCollection(rows, dataset.geo.latField, dataset.geo.lonField);
+}
+
+// Socrata rows sometimes carry a failed-geocode sentinel of (0, 0) — "Null
+// Island" — rather than a null geometry. Drop those so they don't render.
+function isNullIsland(lat: number, lon: number): boolean {
+  return lat === 0 && lon === 0;
+}
+
+function isNullIslandFeature(feature: Feature): boolean {
+  if (feature.geometry?.type !== "Point") return false;
+  const [lon, lat] = feature.geometry.coordinates;
+  return isNullIsland(lat, lon);
 }
 
 function rowsToFeatureCollection(rows: Record<string, string>[], latField: string, lonField: string): FeatureCollection {
@@ -44,6 +60,7 @@ function rowsToFeatureCollection(rows: Record<string, string>[], latField: strin
     const lat = Number(row[latField]);
     const lon = Number(row[lonField]);
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    if (isNullIsland(lat, lon)) continue;
 
     const { [latField]: _lat, [lonField]: _lon, ...properties } = row;
     features.push({

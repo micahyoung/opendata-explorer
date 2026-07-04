@@ -54,6 +54,14 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "Dead trees near Central Park",
+      soql: {
+        where:
+          "status = 'Dead' AND latitude between 40.7644 and 40.8014 AND longitude between -73.9819 and -73.9490",
+        limit: 1000,
+      },
+    },
+    {
       question: "Which species show up with even one dead tree in Queens?",
       soql: {
         where: "status = 'Dead' AND boroname = 'Queens'",

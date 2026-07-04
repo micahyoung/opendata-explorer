@@ -59,6 +59,14 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "Noise complaints near Times Square",
+      soql: {
+        where: "complaint_type like '%Noise%' AND within_circle(location, 40.7580, -73.9855, 800)",
+        order: "created_date DESC",
+        limit: 1000,
+      },
+    },
+    {
       question: "Which agencies have gotten even one noise complaint?",
       soql: {
         where: "complaint_type like '%Noise%'",

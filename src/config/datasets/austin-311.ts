@@ -66,6 +66,15 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Noise and alarm complaints in downtown Austin every July 4th since 2020",
+      soql: {
+        where:
+          "sr_type_desc = 'APD - Non Emergency Noise/Alarm' AND within_circle(sr_location_lat_long, 30.2680536, -97.7447642, 1500) AND date_extract_m(sr_created_date) = 7 AND date_extract_d(sr_created_date) = 4 AND sr_created_date >= '2020-01-01T00:00:00'",
+        order: "sr_created_date DESC",
+        limit: 1000,
+      },
+    },
   ],
 };
 

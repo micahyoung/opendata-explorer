@@ -51,6 +51,13 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Live Oaks near Zilker Park",
+      soql: {
+        where: "species like '%Live Oak%' AND within_circle(geometry, 30.2669, -97.7728, 1500)",
+        limit: 1000,
+      },
+    },
   ],
 };
 

@@ -40,7 +40,7 @@ const definition: DatasetDefinition = {
     {
       question: "Tall grass complaints in Central",
       soql: {
-        where: "typename = 'TALL GRASS' AND cityname = 'CENTRAL'",
+        where: "typename = 'TALL GRASS' AND within_circle(geolocation, 30.5542266, -91.0367175, 8000)",
         order: "createdate DESC",
         limit: 1000,
       },
@@ -54,9 +54,26 @@ const definition: DatasetDefinition = {
       },
     },
     {
+      question: "Missed woody waste service requests in Baton Rouge",
+      soql: {
+        where: "typename = 'MISSED WOODY WASTE SERVICE' AND cityname = 'BATON ROUGE'",
+        order: "createdate DESC",
+        limit: 1000,
+      },
+    },
+    {
       question: "Requests handled by Environmental Services this year",
       soql: {
         where: "department = 'ENVIRONMENTAL SERVICES' AND createdate > '2026-01-01T00:00:00'",
+        order: "createdate DESC",
+        limit: 1000,
+      },
+    },
+    {
+      question: "Junk, trash, or debris complaints on private property in Baton Rouge every July 5th since 2020",
+      soql: {
+        where:
+          "typename = 'JUNK, TRASH, OR DEBRIS ON PRIVATE PROPERTY' AND within_circle(geolocation, 30.4494155, -91.1869659, 12000) AND date_extract_m(createdate) = 7 AND date_extract_d(createdate) = 5 AND createdate >= '2020-01-01T00:00:00'",
         order: "createdate DESC",
         limit: 1000,
       },

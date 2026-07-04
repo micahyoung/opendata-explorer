@@ -63,6 +63,15 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Noise complaints in the Tenderloin every New Year's Eve since 2020",
+      soql: {
+        where:
+          "(service_name = 'Noise' OR service_name = 'Noise Report') AND within_circle(point, 37.7842493, -122.4139933, 1000) AND date_extract_m(requested_datetime) = 12 AND date_extract_d(requested_datetime) = 31 AND requested_datetime >= '2020-01-01T00:00:00'",
+        order: "requested_datetime DESC",
+        limit: 1000,
+      },
+    },
   ],
 };
 

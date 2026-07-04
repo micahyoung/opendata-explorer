@@ -65,6 +65,15 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Illegal dumping reports near Gas Works Park every July 5th since 2020",
+      soql: {
+        where:
+          "webintakeservicerequests = 'Illegal Dumping / Needles' AND within_circle(latitude_longitude, 47.6455976, -122.3349284, 1500) AND date_extract_m(createddate) = 7 AND date_extract_d(createddate) = 5 AND createddate >= '2020-01-01T00:00:00'",
+        order: "createddate DESC",
+        limit: 1000,
+      },
+    },
   ],
 };
 

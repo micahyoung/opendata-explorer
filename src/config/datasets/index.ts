@@ -8,6 +8,7 @@ import cincinnati311 from "./cincinnati-311";
 import chicago311 from "./chicago-311";
 import sf311Cases from "./sf-311-cases";
 import la311 from "./la-311";
+import seattle311 from "./seattle-311";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -19,6 +20,7 @@ export const datasets: DatasetDefinition[] = [
   chicago311,
   sf311Cases,
   la311,
+  seattle311,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

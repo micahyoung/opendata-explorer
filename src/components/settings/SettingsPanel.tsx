@@ -1,12 +1,28 @@
 import { useState } from "react";
 import { useCredentials } from "../../lib/credentials/useCredentials";
+import { usePendingUrlConfig } from "../../lib/credentials/pendingUrlConfig";
+import { encodeConfigParam } from "../../lib/credentials/urlConfigCodec";
 import { CredentialsForm } from "../onboarding/CredentialsForm";
 
 export function SettingsPanel() {
-  const [open, setOpen] = useState(false);
   const credentials = useCredentials((s) => s.credentials);
   const save = useCredentials((s) => s.save);
   const clear = useCredentials((s) => s.clear);
+  const consumePendingConfig = usePendingUrlConfig((s) => s.consume);
+  const [pendingConfig] = useState(() => (credentials ? consumePendingConfig() : undefined));
+  const [open, setOpen] = useState(!!pendingConfig);
+  const [copyLabel, setCopyLabel] = useState("Copy config link");
+
+  const formInitial = pendingConfig ?? credentials;
+
+  function handleCopyLink() {
+    if (!credentials) return;
+    const encoded = encodeConfigParam(credentials);
+    const url = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
+    navigator.clipboard.writeText(url);
+    setCopyLabel("Copied!");
+    setTimeout(() => setCopyLabel("Copy config link"), 1500);
+  }
 
   return (
     <div>
@@ -33,13 +49,24 @@ export function SettingsPanel() {
           }}
         >
           <CredentialsForm
-            initial={credentials}
+            key={pendingConfig ? "url-config" : "saved"}
+            initial={formInitial}
             submitLabel="Save changes"
             onSubmit={(c) => {
               save(c);
               setOpen(false);
             }}
           />
+          {credentials && (
+            <>
+              <button className="btn btn-ghost" onClick={handleCopyLink} style={{ width: "100%", marginTop: 8 }}>
+                {copyLabel}
+              </button>
+              <p className="field-hint">
+                This link contains your API key in plain (reversibly-compressed) form — share it like a password.
+              </p>
+            </>
+          )}
           <button
             className="btn btn-danger"
             onClick={() => {

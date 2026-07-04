@@ -2,7 +2,7 @@
 
 A zero-backend, conversational GIS for NYC Open Data. Chat in plain language, and the app translates your request into a [Socrata](https://dev.socrata.com/) SoQL query, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to NYC's open data API.
 
-v1 ships with exactly seven datasets:
+v1 ships with exactly eight datasets:
 
 - **311 Service Requests** (`erm2-nwe9`)
 - **2015 Street Tree Census** (`uvpi-gqnh`)
@@ -11,6 +11,7 @@ v1 ships with exactly seven datasets:
 - **Austin Tree Inventory** (`wrik-xasw`)
 - **Cincinnati 311 (Non-Emergency) Service Requests** (`gcej-gmiw`)
 - **Chicago 311 Service Requests** (`v6vf-nfxy`)
+- **SF 311 Cases** (`vw6y-z8j6`)
 
 ## Quick start
 

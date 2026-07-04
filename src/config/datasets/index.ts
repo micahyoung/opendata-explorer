@@ -5,6 +5,7 @@ import busLaneViolations from "./ny-bus-lane-violations";
 import sfStreetTreeList from "./sf-street-tree-list";
 import austinTreeInventory from "./austin-tree-inventory";
 import cincinnati311 from "./cincinnati-311";
+import chicago311 from "./chicago-311";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -13,6 +14,7 @@ export const datasets: DatasetDefinition[] = [
   sfStreetTreeList,
   austinTreeInventory,
   cincinnati311,
+  chicago311,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

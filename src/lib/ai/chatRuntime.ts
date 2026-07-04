@@ -7,7 +7,7 @@ import { reasoningEffortMiddleware } from "./reasoningEffortMiddleware";
 import { buildSystemPrompt } from "./systemPrompt";
 import { tools } from "./tools";
 
-const MAX_AGENT_STEPS = 6;
+const MAX_AGENT_STEPS = 8;
 
 /**
  * Wires assistant-ui's chat runtime directly to an in-browser agent (no

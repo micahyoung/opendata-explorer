@@ -1,4 +1,5 @@
 import type { FieldFacet } from "../lib/socrata/computeFacets";
+import type { DatasetField, SoqlExemplar } from "../config/datasets";
 
 export interface SocrataQueryParams {
   datasetId: string;
@@ -27,3 +28,25 @@ export interface SocrataQueryFailure {
 }
 
 export type SocrataQueryResult = SocrataQuerySuccess | SocrataQueryFailure;
+
+export interface DatasetDetailsParams {
+  datasetIds: string[];
+}
+
+export interface DatasetDetailsSuccess {
+  datasetId: string;
+  success: true;
+  fields: DatasetField[];
+  exemplars: SoqlExemplar[];
+}
+
+export interface DatasetDetailsFailure {
+  datasetId: string;
+  success: false;
+  error: {
+    kind: "validation";
+    message: string;
+  };
+}
+
+export type DatasetDetailsResult = (DatasetDetailsSuccess | DatasetDetailsFailure)[];

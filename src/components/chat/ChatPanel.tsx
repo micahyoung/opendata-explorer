@@ -6,6 +6,7 @@ import {
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
+import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
 import { ToolCallCard } from "./ToolCallCard";
 
@@ -17,6 +18,7 @@ export function ChatPanel() {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <ToolCallCard />
+      <DatasetDetailsCard />
       <GeocodeCard />
       <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--paper-raised)" }}>
         <ThreadPrimitive.Root style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
@@ -27,8 +29,8 @@ export function ChatPanel() {
                   Ask the map
                 </div>
                 <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-                  Try "show me noise complaints in Queens," "trees in Brooklyn with poor health," "DPW-maintained
-                  trees in San Francisco," or "pecan trees in Austin."
+                  Try "show me noise complaints in Queens," "trees in Brooklyn with poor health," "open potholes in
+                  Chicago," or "graffiti reports near downtown Calgary."
                 </p>
               </div>
             </ThreadPrimitive.Empty>

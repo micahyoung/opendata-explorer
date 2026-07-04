@@ -47,6 +47,43 @@ export const geocodeLocationTool = tool({
   },
 });
 
+const datasetDetailsInputSchema = z.object({
+  datasetIds: z
+    .array(z.enum(datasetIds))
+    .min(1)
+    .describe("One or more dataset IDs to fetch field lists and example queries for. Pass multiple when comparing datasets."),
+});
+
+/**
+ * Delivers the field schema + worked SoQL exemplars for specific datasets on
+ * demand, instead of injecting every dataset's full schema into the system
+ * prompt on every turn. Pure lookup against static config — no network call,
+ * no map/store side effects.
+ */
+export const getDatasetDetailsTool = tool({
+  description:
+    "Fetch the field list and example SoQL queries for one or more datasets. Call this before fetchSocrataData for any dataset you haven't already seen the details of this conversation.",
+  inputSchema: datasetDetailsInputSchema,
+  execute: async (params) => {
+    return params.datasetIds.map((id) => {
+      const dataset = getDataset(id);
+      if (!dataset) {
+        return {
+          datasetId: id,
+          success: false as const,
+          error: { kind: "validation" as const, message: `Unknown datasetId: ${id}` },
+        };
+      }
+      return {
+        datasetId: dataset.id,
+        success: true as const,
+        fields: dataset.fields,
+        exemplars: dataset.exemplars,
+      };
+    });
+  },
+});
+
 const inputSchema = z.object({
   datasetId: z.enum(datasetIds).describe("The Socrata dataset ID to query. Must be one of the supported datasets."),
   select: z.string().optional().describe("Comma-separated $select column list. Omit to select all columns."),
@@ -121,5 +158,6 @@ export const fetchSocrataDataTool = tool({
 
 export const tools = {
   geocodeLocation: geocodeLocationTool,
+  getDatasetDetails: getDatasetDetailsTool,
   fetchSocrataData: fetchSocrataDataTool,
 };

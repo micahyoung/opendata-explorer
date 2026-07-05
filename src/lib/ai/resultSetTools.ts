@@ -3,7 +3,7 @@ import { z } from "zod";
 import { DEFAULT_ROW_READ_LIMIT, MAX_ROW_READ_LIMIT } from "../../config/constants";
 import { getDataset } from "../../config/datasets";
 import { useMapLayersStore } from "../mapState/mapLayersStore";
-import { featureToRow, pickCsvColumns, toCSV } from "../socrata/exportRows";
+import { featureToRow, pickCsvColumns, toCSV } from "../utils/exportRows";
 
 export const listResultSetsTool = tool({
   description:

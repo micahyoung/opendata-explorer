@@ -26,6 +26,10 @@ export const arcgisExemplarSchema = z.object({
     outFields: z.string().optional(),
     orderByFields: z.string().optional(),
     resultRecordCount: z.number().int().positive().optional(),
+    minLat: z.number().optional(),
+    maxLat: z.number().optional(),
+    minLon: z.number().optional(),
+    maxLon: z.number().optional(),
   }),
 });
 export type ArcgisExemplar = z.infer<typeof arcgisExemplarSchema>;
@@ -93,5 +97,5 @@ export const BACKEND_SYNTAX_GUIDE: Record<"socrata" | "arcgis", string> = {
   socrata:
     'Call fetchSocrataData. Write "where" as a raw SoQL $where clause body (no leading "WHERE"), e.g. borough = \'QUEENS\' AND complaint_type like \'%Noise%\'. String comparisons in SoQL are case-sensitive; match the casing style shown in the field descriptions and exemplars. Use "select" for a comma-separated column list (omit for all columns), and "order" for a raw SoQL $order clause.',
   arcgis:
-    'Call fetchArcGisData. Write "where" as an Esri SQL-92-style clause (no leading "WHERE"), e.g. SCH_TYPE = \'Elementary\' AND BORO = \'K\'. There is no within_circle-style spatial function — constrain by categorical fields or geocoded bounding values instead. Use "outFields" as a comma-separated column list (omit or use "*" for all columns), and "resultRecordCount" for a row-count hint. Results are always returned as WGS84 GeoJSON, so no coordinate-system handling is needed.',
+    'Call fetchArcGisData. Write "where" as an Esri SQL-92-style clause (no leading "WHERE"), e.g. SCH_TYPE = \'Elementary\' AND BORO = \'K\'. To constrain results to a named place, call geocodeLocation first and pass its boundingBox.minLat/maxLat/minLon/maxLon straight through as the matching minLat/maxLat/minLon/maxLon params (all four together, or omit all four) — this applies an Esri envelope spatial filter ANDed with "where", so combine it with a categorical where clause for extra precision when a matching field exists (e.g. borough). Use "outFields" as a comma-separated column list (omit or use "*" for all columns), and "resultRecordCount" for a row-count hint. Results are always returned as WGS84 GeoJSON, so no coordinate-system handling is needed.',
 };

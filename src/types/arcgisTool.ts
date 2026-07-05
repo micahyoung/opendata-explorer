@@ -6,6 +6,10 @@ export interface ArcgisQueryParams {
   outFields?: string;
   orderByFields?: string;
   resultRecordCount?: number;
+  minLat?: number;
+  maxLat?: number;
+  minLon?: number;
+  maxLon?: number;
 }
 
 export interface ArcgisQuerySuccess {

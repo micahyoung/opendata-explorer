@@ -36,6 +36,16 @@ const definition: DatasetDefinition = {
       question: "All public schools in Manhattan",
       query: { where: "BORO = 'M'" },
     },
+    {
+      question: "Elementary schools near Jackson Heights, Queens",
+      query: {
+        where: "SCH_TYPE = 'Elementary' AND BORO = 'Q'",
+        minLat: 40.7456561,
+        maxLat: 40.7656561,
+        minLon: -73.8957755,
+        maxLon: -73.8757755,
+      },
+    },
   ],
 };
 

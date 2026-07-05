@@ -172,6 +172,15 @@ const arcgisInputSchema = z.object({
   outFields: z.string().optional().describe("Comma-separated outFields column list. Omit or use '*' to select all columns."),
   orderByFields: z.string().optional().describe("A raw orderByFields clause, e.g. SCHOOLNAME ASC."),
   resultRecordCount: z.number().int().positive().optional().describe("Desired row count hint. The client enforces its own hard cap."),
+  minLat: z
+    .number()
+    .optional()
+    .describe(
+      "Minimum latitude of a bounding box to spatially constrain results — pass geocodeLocation's boundingBox.minLat directly. Must be given together with maxLat, minLon, and maxLon."
+    ),
+  maxLat: z.number().optional().describe("Maximum latitude of the bounding box — geocodeLocation's boundingBox.maxLat."),
+  minLon: z.number().optional().describe("Minimum longitude of the bounding box — geocodeLocation's boundingBox.minLon."),
+  maxLon: z.number().optional().describe("Maximum longitude of the bounding box — geocodeLocation's boundingBox.maxLon."),
 });
 
 /**
@@ -188,6 +197,16 @@ export const fetchArcGisDataTool = tool({
       return {
         success: false as const,
         error: { kind: "validation" as const, message: `Unknown or non-ArcGIS datasetId: ${params.datasetId}` },
+      };
+    }
+
+    const bboxFields = [params.minLat, params.maxLat, params.minLon, params.maxLon];
+    const bboxFieldsProvided = bboxFields.filter((field) => field !== undefined).length;
+    if (bboxFieldsProvided !== 0 && bboxFieldsProvided !== 4) {
+      return {
+        success: false as const,
+        error: { kind: "validation" as const, message: "minLat, maxLat, minLon, and maxLon must all be provided together, or all omitted." },
+        datasetId: dataset.id,
       };
     }
 

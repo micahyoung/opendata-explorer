@@ -21,6 +21,7 @@ export const listResultSetsTool = tool({
           where: e.where,
           featureCount: e.featureCollection.features.length,
           createdAt: e.createdAt,
+          summary: e.summary,
         };
       }),
     };

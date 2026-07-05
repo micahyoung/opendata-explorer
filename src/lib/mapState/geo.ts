@@ -2,6 +2,11 @@ import type { FeatureCollection } from "geojson";
 
 export type BBox = [number, number, number, number];
 
+/** Formats a coordinate pair into a stable string key for exact-match grouping/lookup. */
+export function coordinateKey(lon: number, lat: number): string {
+  return `${lon.toFixed(6)},${lat.toFixed(6)}`;
+}
+
 /** Computes a [minLon, minLat, maxLon, maxLat] bbox from a FeatureCollection's point geometries. */
 export function computeBBox(fc: FeatureCollection): BBox | undefined {
   let minLon = Infinity;

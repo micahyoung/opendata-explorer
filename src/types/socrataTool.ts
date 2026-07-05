@@ -15,7 +15,6 @@ export interface SocrataQuerySuccess {
   datasetId: string;
   where?: string;
   facets: FieldFacet[];
-  breadcrumb: string;
   resultSetId: string;
 }
 
@@ -59,6 +58,7 @@ export interface ResultSetSummary {
   where?: string;
   featureCount: number;
   createdAt: number;
+  summary: string;
 }
 
 export interface ListResultSetsResult {

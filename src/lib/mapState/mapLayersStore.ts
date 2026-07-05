@@ -9,6 +9,7 @@ export interface LayerEntry {
   featureCollection: FeatureCollection;
   bbox: BBox | undefined;
   createdAt: number;
+  summary: string;
 }
 
 const MAX_HISTORY = 20;
@@ -18,7 +19,13 @@ interface MapLayersState {
   order: string[];
   activeId: string | undefined;
   pendingFlyTo: BBox | undefined;
-  addLayer: (entry: { id: string; datasetId: string; where?: string; featureCollection: FeatureCollection }) => void;
+  addLayer: (entry: {
+    id: string;
+    datasetId: string;
+    where?: string;
+    featureCollection: FeatureCollection;
+    summary: string;
+  }) => void;
   activateLayer: (id: string) => void;
   clearFlyTo: () => void;
 }
@@ -39,6 +46,7 @@ export const useMapLayersStore = create<MapLayersState>((set, get) => ({
         featureCollection: entry.featureCollection,
         bbox: computeBBox(entry.featureCollection),
         createdAt: Date.now(),
+        summary: entry.summary,
       });
 
       while (order.length > MAX_HISTORY) {

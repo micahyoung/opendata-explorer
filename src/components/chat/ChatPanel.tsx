@@ -1,12 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, type FormEvent, type MouseEvent } from "react";
 import {
   AssistantRuntimeProvider,
   ComposerPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
+  useComposerRuntime,
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
+import { buildPinAttachmentData, PIN_ATTACHMENT_NAME } from "../../lib/ai/pinAttachment";
+import { usePinnedPointsStore } from "../../lib/mapState/pinnedPointsStore";
 import { datasets } from "../../config/datasets";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
@@ -15,6 +18,62 @@ import { ArcGisToolCallCard, ToolCallCard } from "./ToolCallCard";
 const MarkdownText = () => <MarkdownTextPrimitive />;
 
 const SUGGESTION_COUNT = 4;
+
+/**
+ * Both submission paths take full manual control (add the pin attachment,
+ * then send) rather than letting the library's own send fire: the form's
+ * internal handler (Enter key, via requestSubmit) is skipped once onSubmit
+ * calls preventDefault, per Radix's composeEventHandlers — but
+ * ComposerPrimitive.Send fires its own send() straight from onClick
+ * (independent of form submit), so it needs the same preventDefault +
+ * manual-send treatment or it would send before the attachment is added.
+ */
+function Composer() {
+  const composerRuntime = useComposerRuntime();
+
+  const sendWithPins = () => {
+    const { pins } = usePinnedPointsStore.getState();
+    if (pins.size > 0) {
+      composerRuntime.addAttachment({
+        type: "data",
+        name: PIN_ATTACHMENT_NAME,
+        content: [{ type: "data", name: PIN_ATTACHMENT_NAME, data: buildPinAttachmentData([...pins.values()]) }],
+      });
+    }
+    composerRuntime.send();
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    sendWithPins();
+  };
+
+  const handleSendClick = (e: MouseEvent) => {
+    e.preventDefault();
+    sendWithPins();
+  };
+
+  return (
+    <ComposerPrimitive.Root
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        gap: 8,
+        padding: 14,
+        borderTop: "1px solid var(--line)",
+      }}
+    >
+      <ComposerPrimitive.Input
+        placeholder="Ask about 311 requests or street trees..."
+        className="field-input"
+        style={{ flex: 1, resize: "none" }}
+      />
+      <ComposerPrimitive.Send className="btn btn-primary" onClick={handleSendClick}>
+        Send
+      </ComposerPrimitive.Send>
+    </ComposerPrimitive.Root>
+  );
+}
 
 function pickRandomSuggestions(): string[] {
   const shuffledDatasets = [...datasets].sort(() => Math.random() - 0.5);
@@ -100,21 +159,7 @@ export function ChatPanel() {
               }}
             />
           </ThreadPrimitive.Viewport>
-          <ComposerPrimitive.Root
-            style={{
-              display: "flex",
-              gap: 8,
-              padding: 14,
-              borderTop: "1px solid var(--line)",
-            }}
-          >
-            <ComposerPrimitive.Input
-              placeholder="Ask about 311 requests or street trees..."
-              className="field-input"
-              style={{ flex: 1, resize: "none" }}
-            />
-            <ComposerPrimitive.Send className="btn btn-primary">Send</ComposerPrimitive.Send>
-          </ComposerPrimitive.Root>
+          <Composer />
         </ThreadPrimitive.Root>
       </div>
     </AssistantRuntimeProvider>

@@ -135,15 +135,16 @@ export const fetchSocrataDataTool = tool({
         };
       }
 
+      const facets = computeFacets(dataset, featureCollection);
+      const facetSummary = formatFacetSummary(facets);
+
       useMapLayersStore.getState().addLayer({
         id: toolCallId,
         datasetId: dataset.id,
         where: params.where,
         featureCollection,
+        summary: facetSummary,
       });
-
-      const facets = computeFacets(dataset, featureCollection);
-      const facetSummary = formatFacetSummary(facets);
 
       return {
         success: true as const,
@@ -152,7 +153,6 @@ export const fetchSocrataDataTool = tool({
         featureCount: featureCollection.features.length,
         facets,
         resultSetId: toolCallId,
-        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}, resultSetId=${toolCallId}${facetSummary ? `. Field breakdown — ${facetSummary}` : ""}`,
       };
     } catch (err) {
       if (err instanceof SocrataHttpError) {
@@ -231,15 +231,16 @@ export const fetchArcGisDataTool = tool({
         };
       }
 
+      const facets = computeFacets(dataset, featureCollection);
+      const facetSummary = formatFacetSummary(facets);
+
       useMapLayersStore.getState().addLayer({
         id: toolCallId,
         datasetId: dataset.id,
         where: params.where,
         featureCollection,
+        summary: facetSummary,
       });
-
-      const facets = computeFacets(dataset, featureCollection);
-      const facetSummary = formatFacetSummary(facets);
 
       return {
         success: true as const,
@@ -248,7 +249,6 @@ export const fetchArcGisDataTool = tool({
         featureCount: featureCollection.features.length,
         facets,
         resultSetId: toolCallId,
-        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}, resultSetId=${toolCallId}${facetSummary ? `. Field breakdown — ${facetSummary}` : ""}`,
       };
     } catch (err) {
       if (err instanceof ArcgisHttpError) {

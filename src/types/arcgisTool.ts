@@ -18,7 +18,6 @@ export interface ArcgisQuerySuccess {
   datasetId: string;
   where?: string;
   facets: FieldFacet[];
-  breadcrumb: string;
   resultSetId: string;
 }
 

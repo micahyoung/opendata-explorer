@@ -5,6 +5,7 @@ import { Layer, Source } from "react-map-gl/maplibre";
 import { getDataset } from "../../config/datasets";
 import { getDatasetColor } from "../../config/datasetColors";
 import { buildCategoricalColorScale } from "../../lib/mapState/categoricalColor";
+import { coordinateKey } from "../../lib/mapState/geo";
 import type { LayerEntry } from "../../lib/mapState/mapLayersStore";
 
 export const ACTIVE_LAYER_ID = "active-layer-points";
@@ -20,7 +21,7 @@ function groupByExactCoordinate(featureCollection: FeatureCollection): FeatureCo
   for (const feature of featureCollection.features as Feature<Point>[]) {
     if (!feature.geometry || feature.geometry.type !== "Point") continue;
     const [lon, lat] = feature.geometry.coordinates;
-    const key = `${lon.toFixed(6)},${lat.toFixed(6)}`;
+    const key = coordinateKey(lon, lat);
     const group = groups.get(key);
     if (group) group.push(feature);
     else groups.set(key, [feature]);

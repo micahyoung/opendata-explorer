@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "chrome-devtools-noheaders": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp@latest",
+        "--redact-network-headers"
+      ],
+      "env": {}
+    }
+  }
+}

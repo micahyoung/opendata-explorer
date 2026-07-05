@@ -11,7 +11,7 @@ export const providerPresets: ProviderPreset[] = [
     id: "openai",
     label: "OpenAI",
     baseURL: "https://api.openai.com/v1",
-    defaultModel: "gpt-4o",
+    defaultModel: "gpt-5-nano",
     notes: "Requires an OpenAI API key with tool-calling access.",
   },
   {

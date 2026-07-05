@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { datasets } from "../../config/datasets";
 import { providerPresets } from "../../config/providerPresets";
-import { fetchModels } from "../../lib/ai/fetchModels";
+import { fetchModels, type ModelInfo } from "../../lib/ai/fetchModels";
+import { isSuitableModel } from "../../lib/ai/modelFiltering";
 import type { Credentials } from "../../types/credentials";
 import { ModelSelect } from "./ModelSelect";
 import { ProviderPresetSelect } from "./ProviderPresetSelect";
@@ -19,6 +20,14 @@ type ModelListState =
   | { status: "loading" }
   | { status: "loaded"; models: string[] }
   | { status: "error" };
+
+/** Filters to models that look usable for text chat + tool calling; falls back to the
+ * full list if that filter would leave nothing selectable (e.g. a local server with
+ * a single, oddly-named model). */
+function suitableModelIds(models: ModelInfo[], presetId: string): string[] {
+  const suitable = models.filter((m) => isSuitableModel(m, presetId));
+  return (suitable.length > 0 ? suitable : models).map((m) => m.id);
+}
 
 const MODEL_FETCH_DEBOUNCE_MS = 500;
 
@@ -45,12 +54,13 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
 
     const timer = setTimeout(async () => {
       try {
-        const models = await fetchModels(baseURL, apiKey);
+        const fetched = await fetchModels(baseURL, apiKey);
         if (cancelled) return;
-        if (models.length === 0) {
+        if (fetched.length === 0) {
           setModelList({ status: "error" });
           return;
         }
+        const models = suitableModelIds(fetched, presetId);
         setModelList({ status: "loaded", models });
         setModel((current) => {
           if (current && models.includes(current)) return current;

@@ -18,6 +18,7 @@ export const STACK_COUNT_PROPERTY = "__stackCount";
 function groupByExactCoordinate(featureCollection: FeatureCollection): FeatureCollection {
   const groups = new Map<string, Feature<Point>[]>();
   for (const feature of featureCollection.features as Feature<Point>[]) {
+    if (!feature.geometry || feature.geometry.type !== "Point") continue;
     const [lon, lat] = feature.geometry.coordinates;
     const key = `${lon.toFixed(6)},${lat.toFixed(6)}`;
     const group = groups.get(key);

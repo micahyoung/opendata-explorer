@@ -9,7 +9,7 @@ import { INITIAL_VIEW_STATE, MAP_STYLE_URL } from "./mapStyle";
 
 export function MapShell() {
   const mapRef = useRef<MapRef>(null);
-  const activeLayer = useMapLayersStore((s) => s.activeLayer);
+  const activeLayer = useMapLayersStore((s) => (s.activeId ? s.entries.get(s.activeId) : undefined));
   const pendingFlyTo = useMapLayersStore((s) => s.pendingFlyTo);
   const clearFlyTo = useMapLayersStore((s) => s.clearFlyTo);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | undefined>(undefined);

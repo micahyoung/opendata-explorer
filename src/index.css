@@ -112,6 +112,11 @@ textarea {
   box-shadow: var(--shadow-card);
 }
 
+.card.clickable:hover {
+  border-color: var(--ink-muted);
+  box-shadow: var(--shadow-card-hover, var(--shadow-card));
+}
+
 .maplibregl-popup-content {
   background: var(--paper-raised);
   border: 1px solid var(--line);

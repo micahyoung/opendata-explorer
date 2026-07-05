@@ -16,6 +16,7 @@ export interface SocrataQuerySuccess {
   where?: string;
   facets: FieldFacet[];
   breadcrumb: string;
+  resultSetId: string;
 }
 
 export interface SocrataQueryFailure {
@@ -50,3 +51,43 @@ export interface DatasetDetailsFailure {
 }
 
 export type DatasetDetailsResult = (DatasetDetailsSuccess | DatasetDetailsFailure)[];
+
+export interface ResultSetSummary {
+  resultSetId: string;
+  datasetId: string;
+  where?: string;
+  featureCount: number;
+  createdAt: number;
+}
+
+export interface ListResultSetsResult {
+  success: true;
+  resultSets: ResultSetSummary[];
+}
+
+export interface ReadResultRowsParams {
+  resultSetId: string;
+  offset?: number;
+  limit?: number;
+  columns?: string[];
+}
+
+export interface ReadResultRowsSuccess {
+  success: true;
+  resultSetId: string;
+  datasetId: string;
+  offset: number;
+  returned: number;
+  totalFeatureCount: number;
+  csv: string;
+}
+
+export interface ReadResultRowsFailure {
+  success: false;
+  error: {
+    kind: "notFound";
+    message: string;
+  };
+}
+
+export type ReadResultRowsResult = ReadResultRowsSuccess | ReadResultRowsFailure;

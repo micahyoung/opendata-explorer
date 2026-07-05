@@ -4,11 +4,11 @@ import { Layer, Source } from "react-map-gl/maplibre";
 import { getDataset } from "../../config/datasets";
 import { getDatasetColor } from "../../config/datasetColors";
 import { buildCategoricalColorScale } from "../../lib/mapState/categoricalColor";
-import type { ActiveLayer } from "../../lib/mapState/mapLayersStore";
+import type { LayerEntry } from "../../lib/mapState/mapLayersStore";
 
 export const ACTIVE_LAYER_ID = "active-layer-points";
 
-export function DataLayer({ layer }: { layer: ActiveLayer }) {
+export function DataLayer({ layer }: { layer: LayerEntry }) {
   const color = useMemo<string | ExpressionSpecification>(() => {
     const dataset = getDataset(layer.datasetId);
     const scale = dataset ? buildCategoricalColorScale(dataset, layer.featureCollection) : undefined;

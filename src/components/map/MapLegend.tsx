@@ -4,7 +4,7 @@ import { buildCategoricalColorScale } from "../../lib/mapState/categoricalColor"
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
 
 export function MapLegend() {
-  const activeLayer = useMapLayersStore((s) => s.activeLayer);
+  const activeLayer = useMapLayersStore((s) => (s.activeId ? s.entries.get(s.activeId) : undefined));
 
   const scale = useMemo(() => {
     if (!activeLayer) return undefined;

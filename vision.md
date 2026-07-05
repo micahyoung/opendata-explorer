@@ -9,6 +9,8 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Conversational Interface:** A chat UI docked alongside the map within a single app shell (a persistent side-by-side rail, not a separate page) that accepts natural language queries and returns visual, geographic updates alongside text.
 * **Dynamic Data Rendering:** The ability to visualize thousands of data points (e.g., 311 service requests, tree census) in real-time as MapLibre GL JS layers, surfacing the variation within a result set at a glance rather than just its location.
 * **Point-Level Inspection:** A user can inspect any individual rendered point's details directly, without needing to ask the LLM a follow-up question.
+* **Result-Set Recall:** A user can revisit any earlier result set from the conversation without re-querying.
+* **Row-Level Grounding for the LLM:** Beyond aggregate facets, the LLM can read a result set's underlying rows when a question calls for specific records.
 * **Agentic Soft-Fail & Auto-Correction:** LLMs must be provided tool calls to test queries client-side. If a generated SoQL query fails (e.g., hallucinated schema columns), the client must catch the error, return it to the LLM, and prompt a self-correction without breaking the user experience.
 * **Grounded Result Summaries:** The LLM must never narrate what a successful query returned without evidence — its conversational recap should reflect the actual results, not a plausible-sounding guess.
 * **Grounded Location Resolution:** The LLM must never guess coordinates for a named address, intersection, or landmark from its own trained geographic knowledge — named places are resolved to real coordinates before they're used to filter a query.
@@ -62,7 +64,8 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 **Step 5: Contextual Iteration**
 * The user types: *"Switch to trees instead — just the ones in Brooklyn with poor health."*
 * The LLM, maintaining conversational context, regenerates the full query against the new dataset (`boroname = 'Brooklyn' AND health = 'Poor'`) rather than patching the previous one. 
-* The map's single active layer is replaced (not stacked) with the new result set. 
+* The map's single active layer is replaced (not stacked) with the new result set.
+* Earlier result sets aren't discarded — they remain recallable, on the map or by the LLM, without a new Socrata request.
 
 ## 5. Architectural Guardrails (To Be Expanded in Implementation)
 
@@ -74,3 +77,4 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1. MapLibre's native layer styling will handle all rendering.
 * **Low Reasoning Effort & Verbosity by Default:** For models that support it, requests default to low reasoning effort and low text verbosity, since SoQL generation doesn't need deep reasoning; unsupported params are soft-failed and dropped rather than erroring.
 * **Anthropic Out of Scope for Direct BYO:** Anthropic's native API isn't Chat-Completions-shaped (different request/response schema, no drop-in compatibility layer), so direct Anthropic BYO isn't supported.
+* **Bounded Result History:** Result-set recall and row-level grounding are backed by a capped history, not unbounded retention.

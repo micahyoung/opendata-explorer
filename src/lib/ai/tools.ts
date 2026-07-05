@@ -8,6 +8,7 @@ import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
 import { fetchNominatim } from "../geocoding/fetchNominatim";
 import { NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
+import { listResultSetsTool, readResultRowsTool } from "./resultSetTools";
 
 const geocodeInputSchema = z.object({
   query: z
@@ -104,7 +105,7 @@ export const fetchSocrataDataTool = tool({
   description:
     "Query one of the supported Open Data datasets via a SoQL query and render the results on the map. Replaces whatever layer is currently shown.",
   inputSchema,
-  execute: async (params) => {
+  execute: async (params, { toolCallId }) => {
     const dataset = getDataset(params.datasetId);
     if (!dataset) {
       return {
@@ -127,7 +128,12 @@ export const fetchSocrataDataTool = tool({
         };
       }
 
-      useMapLayersStore.getState().setActiveLayer({ datasetId: dataset.id, featureCollection });
+      useMapLayersStore.getState().addLayer({
+        id: toolCallId,
+        datasetId: dataset.id,
+        where: params.where,
+        featureCollection,
+      });
 
       const facets = computeFacets(dataset, featureCollection);
       const facetSummary = formatFacetSummary(facets);
@@ -138,7 +144,8 @@ export const fetchSocrataDataTool = tool({
         where: params.where,
         featureCount: featureCollection.features.length,
         facets,
-        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}${facetSummary ? `. Field breakdown — ${facetSummary}` : ""}`,
+        resultSetId: toolCallId,
+        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}, resultSetId=${toolCallId}${facetSummary ? `. Field breakdown — ${facetSummary}` : ""}`,
       };
     } catch (err) {
       if (err instanceof SocrataHttpError) {
@@ -160,4 +167,6 @@ export const tools = {
   geocodeLocation: geocodeLocationTool,
   getDatasetDetails: getDatasetDetailsTool,
   fetchSocrataData: fetchSocrataDataTool,
+  listResultSets: listResultSetsTool,
+  readResultRows: readResultRowsTool,
 };

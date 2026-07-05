@@ -1,5 +1,7 @@
 
-rth-Star Design Document: Conversational GIS for Civic Open Data
+North-Star Design Document: Conversational GIS for Civic Open Data
+
+*This describes the current, shipped architecture and its binding constraints — it is not a backlog. If it disagrees with the code, treat that as a doc bug to fix, not a feature to build.*
 
 ## 1. Vision & Overview
 To build a purely client-side, zero-backend "Conversational GIS" web application that democratizes access to civic open data. By overlaying a natural language chat interface atop an interactive, high-performance map, users can query, filter, and visualize massive civic datasets without needing to understand SQL or navigate complex data portals. The architecture relies on an agentic "Action-Observation" loop to seamlessly map natural language to the query dialect of whichever backend hosts a given dataset. The curated dataset catalog is not tied to any single city, state, country, or hosting platform — it spans whichever open data platforms (e.g. Socrata, ArcGIS Hub) publish the highest-value data, evaluated dataset by dataset.
@@ -21,24 +23,18 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Dynamic Model Discovery:** The model picker is a dropdown populated from the provider's `GET /v1/models`, not a free-text field.
 * **BYO-Socrata Token:** Users will provide their own Socrata App Token(s) to bypass unauthenticated IP rate limits, shifting all data API quotas to the user. Since tokens are issued per Socrata portal, a user querying datasets from multiple portals brings a token for each one they want elevated limits on.
 * **Strict Browser Performance Safeguards:** Hard-coded row-count limits and aggressive timeouts must be strictly enforced on the client side before any backend request executes, to prevent massive GeoJSON payloads from crashing the browser tab.
+* **Plaintext Local Credential Storage (Accepted Trade-off):** All BYO credentials (LLM API key, Socrata app tokens) are stored unencrypted in the browser's `localStorage`, the app's only persistence layer. This is a deliberate consequence of the zero-backend architecture, not an oversight: anyone with access to the browser profile, or a malicious extension, can read them. Users whose threat model doesn't tolerate this are expected to use a scoped/limited key rather than a long-lived production credential.
 
 ## 3. General Architecture & Stack
 
-| Layer | Technology | Rationale |
-| :--- | :--- | :--- |
-| **Frontend Framework** | React (Vite) | Pure static SPA, not Next.js — no server runtime to host, keeping the zero-backend posture literal. |
-| **Chat Component** | `assistant-ui` | Provides native Generative UI and tool-calling visualization. Connects seamlessly to the Vercel AI SDK. |
-| **AI Orchestration** | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`) | Handles LLM streaming and tool execution. BYO-LLM endpoints are called via the `/v1/chat/completions` API — the one interface every OpenAI-compatible BYO target (OpenAI, OpenRouter, local `llama.cpp`/Ollama servers) reliably implements. |
-| **Data Source** | Socrata Open Data (SODA API) and ArcGIS Hub (FeatureServer REST), multiple portals | Both natively return structured GeoJSON for their respective query dialects (SoQL; Esri REST). Fetched entirely client-side. |
-| **Map Engine** | MapLibre GL JS + `react-map-gl` | WebGL-accelerated rendering capable of handling dense point data smoothly. Avoids the billing liabilities of Mapbox and the performance bottlenecks of Leaflet. |
-| **State Management** | `localStorage` | Stores user credentials (BYO keys/endpoints) locally, maintaining the zero-backend privacy posture. |
+A static, client-rendered SPA with no server runtime and no build-time secrets. Two open data query dialects (Socrata SoQL, Esri REST) are fetched directly from the browser and rendered as WebGL map layers; LLM calls go straight from the browser to the user's configured OpenAI-compatible endpoint. See [README.md](README.md) for the specific libraries and packages this is built from.
 
 ## 4. Happy-Path User Flow
 
 **Step 1: Onboarding & Configuration (One-time)**
 * The user loads the static web app.
 * They are greeted by an onboarding modal explaining the BYOK (Bring Your Own Key) architecture.
-* The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local Llama") which populates the Base URL.
+* The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local (llama.cpp / Ollama)") which populates the Base URL.
 * The user enters their API Key and optional Socrata App Token(s), then picks a Model from a dropdown populated via the provider's `/v1/models`.
 * Credentials are saved to `localStorage`.
 * A saved configuration can also be shared as a single URL, letting a user reuse it on another device or hand it off without retyping. Since the link carries the API key and any Socrata tokens in the clear, generating one is always an explicit user action, never automatic.
@@ -50,7 +46,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The payload is sent directly from the browser to the user's configured LLM endpoint.
 
 **Step 3: The Agentic Query Loop**
-* The LLM identifies the correct dataset and, if it hasn't already seen that dataset's schema this conversation, fetches it via a dedicated tool call before writing a query against it — that response also names which backend-specific fetch tool to call and how. If the request names a specific address, intersection, or landmark rather than a value already covered by the schema (e.g. a borough), the LLM first resolves it to real coordinates via a geocoding tool call, then uses those coordinates in the query. It triggers the fetch tool call for that dataset's backend.
+* The LLM identifies the correct dataset and, if it hasn't already seen that dataset's schema this conversation, fetches it via a dedicated tool call before writing a query against it — that response also names which backend-specific fetch tool to call and how. If the request names a specific address, intersection, or landmark rather than a value already covered by the schema (e.g. a borough), the LLM first resolves it to real coordinates via a geocoding tool call, then uses those coordinates in the query. Either way, it finishes by triggering the fetch tool call for that dataset's backend.
 * **Validation:** The client intercepts the tool call. It strictly enforces a row-count cap and runs the fetch request against the dataset's backend.
 * *(Soft-Fail Scenario)*: If the backend rejects the query (e.g., misspelled column), the client intercepts the error and feeds it back to the LLM: *"Observation: Column 'borugh' does not exist."* The LLM corrects the typo and tries again.
 
@@ -67,13 +63,14 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The map's single active layer is replaced (not stacked) with the new result set.
 * Earlier result sets aren't discarded — they remain recallable, on the map or by the LLM, without a new backend request.
 
-## 5. Architectural Guardrails (To Be Expanded in Implementation)
+## 5. Architectural Guardrails
 
 * **Schema Scope:** To prevent context-window exhaustion and hallucination, the app launches with a hardcoded, highly curated declarative dictionary of high-value datasets, each defined in its own config file with schema and worked query exemplars. Only a dataset's identity (ID, name, description) is always in context; its field schema, exemplars, and backend-specific query syntax are retrieved by the LLM on demand, one dataset (or a handful, for comparisons) at a time, so growing the curated catalog doesn't grow the cost of every turn. The catalog has grown from its five-dataset v1 launch to fifteen datasets covering 311/service-request, tree-census, and school-location data across NYC, SF, LA, Chicago, Seattle, Austin, Cincinnati, Calgary, Honolulu, and Baton Rouge, published across eleven Socrata domains plus one ArcGIS Hub FeatureServer — curated datasets are not assumed to live on a single city-, state-, or country-run domain, or a single hosting platform. Additional dataset categories (e.g., restaurant inspections, NYPD complaints, parks) are deferred to later iterations. Dynamic catalog search is deferred indefinitely. A dataset only qualifies for curation if it exposes real, per-request point coordinates via a genuinely queryable table (Socrata or ArcGIS FeatureServer): listings that are merely federated pointers to an external GIS backend with no real rows behind the queryable API, that only expose neighborhood/ward-centroid coordinates rather than the actual request location, or that leave most rows ungeocoded, are excluded regardless of how promising the listing looks.
 * **Geo Representation Scope:** A qualifying dataset's per-row location must be expressed as one of the representations the fetch layer knows how to turn into map-able coordinates today: a native Socrata point/location column, a pair of separate numeric latitude/longitude columns, or native ArcGIS point geometry. Polygon/other non-point geometry, and any other location encoding (e.g. a single free-text "(lat,lon)" column), are deferred rather than special-cased, until common enough across candidate datasets to justify generalizing the fetch and map-rendering layers for them.
 * **Result Grounding:** The curation principle extends past the query itself — which fields are meaningful to summarize about returned results is a curated property of each dataset, not inferred at runtime from a single query's results.
 * **Location Grounding:** Named places are resolved to real coordinates by a dedicated geocoding step before the fetch — the same tool-chaining pattern regardless of which dataset or backend is ultimately queried, so the skill is taught once rather than duplicated per dataset.
-* **CORS Restrictions:** For local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.
+* **CORS Restrictions:** Because there is no bundled relay/proxy, any BYO-LLM endpoint must accept direct browser CORS requests — a provider that blocks browser calls with no proxy option is out of scope, not a bug to fix here. For local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.
+* **Tool-Calling Requirement:** Models without native OpenAI-style function/tool calling are out of scope for v1 — there is no prompt-based JSON-parsing fallback for the query-generation loop. A model that can't call the fetch tool simply can't query data through this app.
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1. MapLibre's native layer styling will handle all rendering.
 * **Low Reasoning Effort & Verbosity by Default:** For models that support it, requests default to low reasoning effort and low text verbosity, since query generation doesn't need deep reasoning; unsupported params are soft-failed and dropped rather than erroring.
 * **Anthropic Out of Scope for Direct BYO:** Anthropic's native API isn't Chat-Completions-shaped (different request/response schema, no drop-in compatibility layer), so direct Anthropic BYO isn't supported.

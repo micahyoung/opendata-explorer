@@ -1,23 +1,23 @@
 # Opendata Explorer
 
-A zero-backend, conversational GIS for civic open data. Chat in plain language, and the app translates your request into a [Socrata](https://dev.socrata.com/) SoQL query, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to each dataset's Socrata portal.
+A zero-backend, conversational GIS for civic open data. Chat in plain language, and the app maps your request to a query against the right dataset's backend, fetches the data, and renders it live on a [MapLibre](https://maplibre.org/) map. There is no server: it's a static single-page app that talks directly, from your browser, to your own LLM endpoint and to each dataset's data portal.
 
-v1 ships with exactly fourteen datasets:
+Full product vision, architecture, and design rationale: [vision.md](vision.md).
 
-- **311 Service Requests** (`erm2-nwe9`)
-- **2015 Street Tree Census** (`uvpi-gqnh`)
-- **MTA Bus Automated Camera Enforcement Violations** (`kh8p-hcbm`)
-- **SF Street Tree List** (`tkzw-k3nq`)
-- **Austin Tree Inventory** (`wrik-xasw`)
-- **Cincinnati 311 (Non-Emergency) Service Requests** (`gcej-gmiw`)
-- **Chicago 311 Service Requests** (`v6vf-nfxy`)
-- **SF 311 Cases** (`vw6y-z8j6`)
-- **MyLA311 Service Request Data (2025)** (`h73f-gn57`)
-- **Seattle Customer Service Requests** (`5ngg-rpne`)
-- **Austin 311 Public Data** (`xwdj-i9he`)
-- **Calgary 311 Service Requests** (`iahh-g8bj`)
-- **Honolulu 311 Reports** (`6hui-dvrh`)
-- **Baton Rouge 311 Citizen Requests** (`7ixm-mnvx`)
+## Datasets
+
+The curated catalog lives in [`src/config/datasets/`](src/config/datasets/) — one file per dataset, each a `DatasetDefinition` (Socrata or ArcGIS) validated against [`datasets.schema.ts`](src/config/datasets/datasets.schema.ts). See [vision.md § Architectural Guardrails](vision.md#5-architectural-guardrails) for what qualifies a dataset for curation.
+
+## Tech stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Frontend framework | React (Vite) — static SPA, no server runtime |
+| Chat component | [`assistant-ui`](https://www.assistant-ui.com/) |
+| AI orchestration | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`), calling `/v1/chat/completions` |
+| Data sources | Socrata Open Data (SODA API) and ArcGIS Hub (FeatureServer REST) |
+| Map engine | MapLibre GL JS + `react-map-gl` |
+| Client persistence | `localStorage` (BYO credentials only — see [Privacy trade-off](#privacy-trade-off)) |
 
 ## Quick start
 
@@ -30,26 +30,21 @@ Open the app, and you'll be prompted to bring your own LLM credentials before yo
 
 ## Bring your own LLM (BYOK)
 
-This app is **entirely client-side** — there is no backend of ours mediating your requests. To use the chat, you provide:
+This app is **entirely client-side** — there is no backend of ours mediating your requests (see [vision.md § Technical Constraints](vision.md#technical-constraints--bring-your-own-architecture) for why). To use the chat, you provide:
 
 - A **Base URL** for an OpenAI-compatible chat completions endpoint
 - An **API key**
 - A **model name**
 
-These are stored **unencrypted in your browser's `localStorage`** and are sent only to the endpoint you configure — never to any server we control. You can edit or clear them at any time from the **Settings** panel in the top-right corner of the map.
+These are stored **unencrypted in your browser's `localStorage`** and are sent only to the endpoint you configure — never to any server we control. You can edit or clear them at any time from the **Settings** panel in the top-right corner of the map, which also lets you share a saved configuration as a URL.
 
 ### Requirements
 
-Your model **must support native OpenAI-style tool/function calling**. This app relies on the model calling a `fetchSocrataData` tool to query data; there is no prompt-based JSON-parsing fallback for models that lack tool calling. If your model doesn't support tools, the chat will not be able to query data.
+Your model **must support native OpenAI-style tool/function calling** — see [vision.md § Tool-Calling Requirement](vision.md#5-architectural-guardrails) for why this is a hard scope boundary rather than something with a fallback. The chat calls a backend-specific fetch tool (see [`src/lib/ai/tools.ts`](src/lib/ai/tools.ts)) to query data; if your model doesn't support tools, it will not be able to query data.
 
 ### Supported provider presets
 
-| Preset | Base URL | Notes |
-| --- | --- | --- |
-| OpenAI | `https://api.openai.com/v1` | Any tool-calling chat model, e.g. `gpt-4o`. |
-| OpenRouter | `https://openrouter.ai/api/v1` | Pick a model that supports tool calling — not all OpenRouter models do. |
-| Local (llama.cpp / Ollama) | `http://localhost:8080/v1` | See CORS note below. Model must support tool calling. |
-| Custom | (you provide) | Any OpenAI-compatible, tool-calling endpoint reachable via direct browser CORS. |
+Presets are defined in [`src/config/providerPresets.ts`](src/config/providerPresets.ts): OpenAI, OpenRouter, Local (llama.cpp / Ollama), and Custom.
 
 The app always calls the standard `/v1/chat/completions`-style endpoint (not OpenAI's proprietary Responses API), so any OpenAI-compatible server should work as long as it implements tool calling.
 
@@ -69,23 +64,17 @@ Because this app calls your LLM endpoint directly from the browser with no proxy
   OLLAMA_ORIGINS="*" ollama serve
   ```
 
-- **Providers that block browser CORS with no proxy option are unsupported in v1.** There is no bundled relay/proxy server — if a provider rejects direct browser calls, it simply won't work here.
+- **Providers that block browser CORS with no proxy option are unsupported** — see [vision.md § CORS Restrictions](vision.md#5-architectural-guardrails) for why there's no bundled relay/proxy to work around this.
 
-## Socrata data access
+## Data access
 
-Data is fetched directly from each dataset's Socrata portal using the public SODA API. Datasets span multiple Socrata domains — `data.cityofnewyork.us`, `data.ny.gov`, `data.sfgov.org`, `data.austintexas.gov`, `data.cincinnati-oh.gov`, `data.cityofchicago.org`, `data.lacity.org`, `data.seattle.gov`, `data.calgary.ca`, `data.honolulu.gov`, and `data.brla.gov` — and each dataset declares its own `domain` in its definition. Because Socrata app tokens are portal-specific (a token issued for one portal won't raise rate limits on another), Settings shows one optional app token input per distinct domain used by the current catalog, derived automatically from the dataset list. It's not required to use the app.
+Each dataset declares its own backend (`socrata` or `arcgis`) — and, for Socrata, its portal `domain` — in its definition under [`src/config/datasets/`](src/config/datasets/). Because Socrata app tokens are portal-specific (a token issued for one portal won't raise rate limits on another), Settings shows one optional app token input per distinct Socrata domain used by the current catalog, derived automatically from the dataset list. It's not required to use the app.
 
-The client enforces a hard cap on `$limit` and a request timeout regardless of what the model requests, to keep the browser tab responsive.
+The client enforces a hard cap on result size and a request timeout regardless of what the model requests, to keep the browser tab responsive.
 
 ## Privacy trade-off
 
-Because credentials live in plaintext `localStorage`:
-
-- Anyone with access to your browser profile (or a malicious extension) can read your API key.
-- Clearing the browser's site data, or using the "Clear credentials" button in Settings, removes it.
-- Nothing is sent to any server other than the LLM endpoint and Socrata endpoint you're already configured to use.
-
-If this trade-off doesn't work for your threat model, don't put a long-lived production API key in here — use a scoped/limited key instead.
+Credentials live in plaintext `localStorage` — see [vision.md § Plaintext Local Credential Storage](vision.md#technical-constraints--bring-your-own-architecture) for why this trade-off is accepted and what it means for your threat model. Operationally: clearing the browser's site data, or using the "Clear credentials" button in Settings, removes them. Nothing is sent to any server other than the LLM endpoint and dataset backend(s) you're already configured to use.
 
 ## Development
 
@@ -93,11 +82,11 @@ If this trade-off doesn't work for your threat model, don't put a long-lived pro
 npm run dev      # start the dev server
 npm run build     # typecheck + production build
 npm run lint      # oxlint
-npm test          # run the exemplar live-data regression suite (hits real Socrata endpoints)
+npm test          # run the exemplar live-data regression suite (hits real Socrata/ArcGIS endpoints)
 ```
 
-`tests/exemplars.live.test.ts` runs every hand-written example query from `src/config/datasets/*.ts` against the live Socrata API and asserts each returns at least one feature. It's a smoke test, not a snapshot test — it catches upstream dataset/column renames, not content regressions.
+`tests/exemplars.live.test.ts` runs every hand-written example query from `src/config/datasets/*.ts` against its live backend and asserts each returns at least one feature. It's a smoke test, not a snapshot test — it catches upstream dataset/column renames, not content regressions.
 
 ## Adding a dataset
 
-Add a new file under `src/config/datasets/`, export a `DatasetDefinition` (validated against `datasets.schema.ts`) with its Socrata ID, field list, a `geo` config (`native` if the dataset has a `location`-typed column usable by the `.geojson` endpoint, `latlon` if it only has separate latitude/longitude columns), and 2-4 example question → SoQL mappings. Register it in `src/config/datasets/index.ts`. The system prompt and the tool's dataset enum both derive from that index automatically.
+Add a new file under `src/config/datasets/`, export a `DatasetDefinition` matching one of the shapes in [`datasets.schema.ts`](src/config/datasets/datasets.schema.ts) (Socrata or ArcGIS), and register it in [`src/config/datasets/index.ts`](src/config/datasets/index.ts). The system prompt and the tool's dataset enum both derive from that index automatically. See [vision.md § Schema Scope](vision.md#5-architectural-guardrails) for what qualifies a dataset for curation.

@@ -9,7 +9,7 @@ const definition: DatasetDefinition = {
     "A list of street trees maintained by DPW and other agencies/entities in San Francisco, including species, planting date, trunk diameter, and location.",
   geo: { mode: "native", field: "location" },
   mapColor: "#1f4e8c",
-  categoryField: "qcaretaker",
+  categoryField: "qspecies",
   fields: [
     { name: "treeid", type: "text", description: "Unique identifier for the tree" },
     { name: "qlegalstatus", type: "text", description: "Legal status, e.g. 'Permitted Site', 'Landmark tree'", facetable: true },

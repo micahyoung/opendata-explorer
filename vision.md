@@ -39,8 +39,10 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local Llama") which populates the Base URL.
 * The user enters their API Key and optional Socrata App Token(s), then picks a Model from a dropdown populated via the provider's `/v1/models`.
 * Credentials are saved to `localStorage`.
+* A saved configuration can also be shared as a single URL, letting a user reuse it on another device or hand it off without retyping. Since the link carries the API key and any Socrata tokens in the clear, generating one is always an explicit user action, never automatic.
 
 **Step 2: Intent Expression & Dataset Discovery**
+* Instead of a blank chat box, the user can start from a clickable suggested question drawn from the curated catalog.
 * The user types a query into the `assistant-ui` chat: *"Show me noise complaints in Queens."*
 * The Vercel AI SDK packages the message alongside a curated, declarative system prompt naming every supported dataset (ID, name, and description) so the LLM can identify the right one — but the full field schema and worked question→SoQL examples for a given dataset are only pulled into context on demand, so the base prompt stays lightweight as the catalog of curated datasets grows.
 * The payload is sent directly from the browser to the user's configured LLM endpoint.

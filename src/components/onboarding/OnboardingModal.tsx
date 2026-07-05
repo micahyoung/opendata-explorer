@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { useCredentials } from "../../lib/credentials/useCredentials";
+import { usePendingUrlConfig } from "../../lib/credentials/pendingUrlConfig";
 import { CredentialsForm } from "./CredentialsForm";
 
 export function OnboardingModal() {
   const save = useCredentials((s) => s.save);
+  const consumePendingConfig = usePendingUrlConfig((s) => s.consume);
+  const [pendingConfig] = useState(consumePendingConfig);
 
   return (
     <div
@@ -51,7 +55,7 @@ export function OnboardingModal() {
             is sent only to the endpoint you configure below. Providers that block direct browser requests aren't
             supported — use a CORS-enabled local server or a browser-friendly provider like OpenRouter.
           </p>
-          <CredentialsForm submitLabel="Save and start exploring" onSubmit={save} />
+          <CredentialsForm initial={pendingConfig} submitLabel="Save and start exploring" onSubmit={save} />
         </div>
       </div>
     </div>

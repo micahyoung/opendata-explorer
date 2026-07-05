@@ -37,7 +37,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Open service requests in Westwood",
+      question: "Open service requests in Westwood, Cincinnati",
       soql: {
         where: "sr_status_flag = 'OPEN' AND neighborhood = 'WESTWOOD'",
         order: "date_created DESC",
@@ -45,7 +45,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Tall grass and weeds complaints on private property",
+      question: "Tall grass and weeds complaints on private property in Cincinnati",
       soql: {
         where: "sr_type_desc = 'TALL GRASS/WEEDS, PRIVATE PROP'",
         order: "date_created DESC",
@@ -53,7 +53,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Potholes near Findlay Market",
+      question: "Potholes near Findlay Market in Cincinnati",
       soql: {
         where:
           "sr_type_desc = 'POTHOLE, REPAIR' AND latitude between 39.1045 and 39.1261 AND longitude between -84.5329 and -84.5052",
@@ -62,7 +62,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Requests for trash collection this year",
+      question: "Requests for trash collection in Cincinnati this year",
       soql: {
         where: "sr_type_desc = 'TRASH, REQUEST FOR COLLECTION' AND date_created > '2026-01-01T00:00:00'",
         order: "date_created DESC",

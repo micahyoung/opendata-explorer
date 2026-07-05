@@ -24,7 +24,7 @@ const definition: DatasetDefinition = {
   ],
   exemplars: [
     {
-      question: "Bus lane violations on the B44",
+      question: "Bus lane violations on the B44 in NYC",
       soql: {
         where: "bus_route_id like '%B44%' AND violation_type like '%BUS LANE%'",
         order: "first_occurrence DESC",
@@ -32,7 +32,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Recent double-parked violations",
+      question: "Recent double-parked violations in NYC",
       soql: {
         where: "violation_type like '%DOUBLE PARKED%'",
         order: "first_occurrence DESC",
@@ -40,7 +40,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Violations on the M15 in the last month",
+      question: "Violations on the M15 in NYC in the last month",
       soql: {
         where: "bus_route_id like '%M15%' AND first_occurrence > '2026-06-02T00:00:00'",
         order: "first_occurrence DESC",
@@ -48,7 +48,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bus stop violations issued citywide",
+      question: "Bus stop violations issued citywide in NYC",
       soql: {
         where: "violation_type like '%BUS STOP%' AND violation_status = 'VIOLATION ISSUED'",
         order: "first_occurrence DESC",
@@ -56,7 +56,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Which routes have even a single bus lane violation?",
+      question: "Which NYC routes have even a single bus lane violation?",
       soql: {
         where: "violation_type like '%BUS LANE%'",
         order: "first_occurrence DESC",
@@ -64,7 +64,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bus lane violations near Barclays Center",
+      question: "Bus lane violations near Barclays Center in NYC",
       soql: {
         where: "violation_type like '%BUS LANE%' AND within_circle(violation_georeference, 40.6852, -73.9764, 1500)",
         order: "first_occurrence DESC",
@@ -72,7 +72,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bus stop violations at a specific stop",
+      question: "Bus stop violations on Flushing Ave in NYC",
       soql: {
         where: "violation_type like '%BUS STOP%' AND stop_name like '%FLUSHING AV%'",
         order: "first_occurrence DESC",

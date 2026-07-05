@@ -30,7 +30,7 @@ const definition: DatasetDefinition = {
   ],
   exemplars: [
     {
-      question: "Open damaged garbage cart requests",
+      question: "Open damaged garbage cart requests in Baton Rouge",
       soql: {
         where: "typename = 'DAMAGED GARBAGE CART' AND statusdesc = 'OPEN'",
         order: "createdate DESC",
@@ -38,7 +38,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Tall grass complaints in Central",
+      question: "Tall grass complaints in Central, Baton Rouge",
       soql: {
         where: "typename = 'TALL GRASS' AND within_circle(geolocation, 30.5542266, -91.0367175, 8000)",
         order: "createdate DESC",
@@ -46,7 +46,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Street and traffic issue requests",
+      question: "Street and traffic issue requests in Baton Rouge",
       soql: {
         where: "parenttype = 'STREET/TRAFFIC ISSUES'",
         order: "createdate DESC",
@@ -62,7 +62,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Requests handled by Environmental Services this year",
+      question: "Requests handled by Baton Rouge's Environmental Services this year",
       soql: {
         where: "department = 'ENVIRONMENTAL SERVICES' AND createdate > '2026-01-01T00:00:00'",
         order: "createdate DESC",

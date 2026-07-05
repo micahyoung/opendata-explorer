@@ -39,7 +39,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Streetlight reports still submitted",
+      question: "Streetlight reports in Honolulu nobody's picked up yet",
       soql: {
         where: "requesttype = 'Streetlight' AND statustype = 'Submitted'",
         order: "datecreated DESC",
@@ -47,7 +47,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Homeless concerns reported to 311",
+      question: "Homeless concerns reported to 311 in Honolulu",
       soql: {
         where: "requesttype = 'Homeless Concerns'",
         order: "datecreated DESC",
@@ -55,7 +55,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Parking issues near Ala Moana Center",
+      question: "Parking issues near Ala Moana Center in Honolulu",
       soql: {
         where: "requesttype like '%Parking%' AND within_circle(location, 21.2916, -157.8420, 3000)",
         order: "datecreated DESC",
@@ -63,7 +63,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Reports still submitted or in process",
+      question: "Which 311 reports in Honolulu are still open?",
       soql: {
         where: "statustype = 'Submitted' OR statustype = 'InProcess'",
         order: "datecreated DESC",

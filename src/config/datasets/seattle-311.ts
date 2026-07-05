@@ -42,7 +42,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Graffiti reports in Council District 3",
+      question: "Graffiti reports in Seattle's Council District 3",
       soql: {
         where: "webintakeservicerequests = 'Graffiti' AND councildistrict = '3'",
         order: "createddate DESC",
@@ -50,7 +50,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Illegal dumping and needle reports",
+      question: "Illegal dumping and needle reports in Seattle",
       soql: {
         where: "webintakeservicerequests = 'Illegal Dumping / Needles'",
         order: "createddate DESC",
@@ -66,7 +66,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Illegal dumping reports near Gas Works Park every July 5th since 2020",
+      question: "Illegal dumping reports near Gas Works Park in Seattle every July 5th since 2020",
       soql: {
         where:
           "webintakeservicerequests = 'Illegal Dumping / Needles' AND within_circle(latitude_longitude, 47.6455976, -122.3349284, 1500) AND date_extract_m(createddate) = 7 AND date_extract_d(createddate) = 5 AND createddate >= '2020-01-01T00:00:00'",

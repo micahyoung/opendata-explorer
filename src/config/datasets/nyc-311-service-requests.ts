@@ -35,7 +35,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Show me all open 311 requests",
+      question: "Show me all open 311 requests in NYC",
       soql: {
         where: "status = 'Open'",
         order: "created_date DESC",
@@ -59,7 +59,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Noise complaints near Times Square",
+      question: "Noise complaints near Times Square in NYC",
       soql: {
         where: "complaint_type like '%Noise%' AND within_circle(location, 40.7580, -73.9855, 800)",
         order: "created_date DESC",
@@ -67,7 +67,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Which agencies have gotten even one noise complaint?",
+      question: "Which NYC agencies have gotten even one noise complaint?",
       soql: {
         where: "complaint_type like '%Noise%'",
         order: "created_date DESC",

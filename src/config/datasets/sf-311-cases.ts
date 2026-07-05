@@ -32,7 +32,7 @@ const definition: DatasetDefinition = {
   ],
   exemplars: [
     {
-      question: "Street and sidewalk cleaning cases in the Mission",
+      question: "Street and sidewalk cleaning cases in the Mission in SF",
       soql: {
         where: "service_name = 'Street and Sidewalk Cleaning' AND analysis_neighborhood = 'Mission'",
         order: "requested_datetime DESC",
@@ -40,7 +40,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Open graffiti cases",
+      question: "Open graffiti cases in SF",
       soql: {
         where: "service_name = 'Graffiti' AND status_description = 'Open'",
         order: "requested_datetime DESC",
@@ -48,7 +48,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Encampment reports this year",
+      question: "Encampment reports in SF this year",
       soql: {
         where: "service_name = 'Encampment' AND requested_datetime > '2026-01-01T00:00:00'",
         order: "requested_datetime DESC",
@@ -56,7 +56,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Abandoned vehicle cases in Supervisor District 9",
+      question: "Abandoned vehicle cases in SF's Supervisor District 9",
       soql: {
         where: "service_name = 'Abandoned Vehicle' AND supervisor_district = 9",
         order: "requested_datetime DESC",
@@ -64,7 +64,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Noise complaints in the Tenderloin every New Year's Eve since 2020",
+      question: "Noise complaints in SF's Tenderloin every New Year's Eve since 2020",
       soql: {
         where:
           "(service_name = 'Noise' OR service_name = 'Noise Report') AND within_circle(point, 37.7842493, -122.4139933, 1000) AND date_extract_m(requested_datetime) = 12 AND date_extract_d(requested_datetime) = 31 AND requested_datetime >= '2020-01-01T00:00:00'",

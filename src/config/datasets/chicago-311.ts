@@ -39,7 +39,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Aircraft noise complaints this month",
+      question: "Aircraft noise complaints in Chicago this month",
       soql: {
         where: "sr_type = 'Aircraft Noise Complaint' AND created_date > '2026-06-01T00:00:00'",
         order: "created_date DESC",
@@ -47,7 +47,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Open graffiti removal requests",
+      question: "Open graffiti removal requests in Chicago",
       soql: {
         where: "sr_type = 'Graffiti Removal Request' AND status = 'Open'",
         order: "created_date DESC",
@@ -55,7 +55,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Rat complaints handled by Streets and Sanitation",
+      question: "Rat complaints in Chicago handled by Streets and Sanitation",
       soql: {
         where: "sr_type = 'Rodent Baiting/Rat Complaint' AND owner_department = 'Streets and Sanitation'",
         order: "created_date DESC",
@@ -63,7 +63,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Potholes near Millennium Park",
+      question: "Potholes near Millennium Park in Chicago",
       soql: {
         where: "sr_type = 'Pothole in Street Complaint' AND within_circle(location, 41.8826, -87.6226, 800)",
         order: "created_date DESC",

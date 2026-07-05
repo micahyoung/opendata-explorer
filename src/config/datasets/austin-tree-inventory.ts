@@ -31,28 +31,28 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Crapemyrtles",
+      question: "Crapemyrtles in Austin",
       soql: {
         where: "species = 'Crapemyrtle'",
         limit: 1000,
       },
     },
     {
-      question: "Large trees with a trunk diameter over 30 inches",
+      question: "Large trees in Austin with a trunk diameter over 30 inches",
       soql: {
         where: "diameter > 30",
         limit: 1000,
       },
     },
     {
-      question: "Large Southern Live Oaks",
+      question: "Large Southern Live Oaks in Austin",
       soql: {
         where: "species like '%Live Oak%' AND diameter > 24",
         limit: 1000,
       },
     },
     {
-      question: "Live Oaks near Zilker Park",
+      question: "Live Oaks near Zilker Park in Austin",
       soql: {
         where: "species like '%Live Oak%' AND within_circle(geometry, 30.2669, -97.7728, 1500)",
         limit: 1000,

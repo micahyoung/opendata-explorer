@@ -42,7 +42,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Graffiti removal requests in Council District 9",
+      question: "Graffiti removal requests in LA's Council District 9",
       soql: {
         where: "requesttype = 'Graffiti Removal' AND cd = 9",
         order: "createddate DESC",
@@ -50,7 +50,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bulky item requests that are still pending",
+      question: "Bulky item requests in LA that are still pending",
       soql: {
         where: "requesttype = 'Bulky Items' AND status = 'Pending'",
         order: "createddate DESC",
@@ -58,7 +58,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bulky item requests in Boyle Heights",
+      question: "Bulky item requests in Boyle Heights, LA",
       soql: {
         where: "requesttype = 'Bulky Items' AND ncname = 'Boyle Heights'",
         order: "createddate DESC",
@@ -66,7 +66,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Illegal dumping pickups handled by LASAN",
+      question: "Illegal dumping pickups in LA handled by LASAN",
       soql: {
         where: "requesttype = 'Illegal Dumping Pickup' AND owner = 'LASAN'",
         order: "createddate DESC",
@@ -74,7 +74,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Bulky item requests near Hollywood on the first of each month in 2025",
+      question: "Bulky item requests near Hollywood in LA on the first of each month in 2025",
       soql: {
         where:
           "requesttype = 'Bulky Items' AND within_circle(location, 34.0980031, -118.3295230, 2000) AND date_extract_d(createddate) = 1 AND createddate >= '2025-01-01T00:00:00' AND createddate < '2026-01-01T00:00:00'",

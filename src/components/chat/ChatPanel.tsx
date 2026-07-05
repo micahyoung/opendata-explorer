@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   AssistantRuntimeProvider,
   ComposerPrimitive,
@@ -6,14 +7,26 @@ import {
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
+import { datasets } from "../../config/datasets";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
 import { ToolCallCard } from "./ToolCallCard";
 
 const MarkdownText = () => <MarkdownTextPrimitive />;
 
+const SUGGESTION_COUNT = 4;
+
+function pickRandomSuggestions(): string[] {
+  const shuffledDatasets = [...datasets].sort(() => Math.random() - 0.5);
+  return shuffledDatasets.slice(0, SUGGESTION_COUNT).map((dataset) => {
+    const exemplars = dataset.exemplars;
+    return exemplars[Math.floor(Math.random() * exemplars.length)].question;
+  });
+}
+
 export function ChatPanel() {
   const runtime = useOpenDataChatRuntime();
+  const suggestions = useMemo(() => pickRandomSuggestions(), []);
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -28,10 +41,29 @@ export function ChatPanel() {
                 <div className="label" style={{ color: "var(--sign-green)", fontSize: 12, marginBottom: 8 }}>
                   Ask the map
                 </div>
-                <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-                  Try "show me noise complaints in Queens," "trees in Brooklyn with poor health," "open potholes in
-                  Chicago," or "graffiti reports near downtown Calgary."
-                </p>
+                <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: "0 0 10px" }}>Try:</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {suggestions.map((question) => (
+                    <ThreadPrimitive.Suggestion key={question} prompt={question} send asChild>
+                      <button
+                        type="button"
+                        style={{
+                          textAlign: "left",
+                          background: "none",
+                          border: "1px solid var(--line)",
+                          borderRadius: "var(--radius-lg)",
+                          padding: "8px 12px",
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          color: "var(--ink)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {question}
+                      </button>
+                    </ThreadPrimitive.Suggestion>
+                  ))}
+                </div>
               </div>
             </ThreadPrimitive.Empty>
             <ThreadPrimitive.Messages

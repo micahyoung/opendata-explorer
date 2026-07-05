@@ -51,7 +51,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Traffic signal maintenance requests",
+      question: "Traffic signal maintenance requests in Austin",
       soql: {
         where: "sr_type_desc = 'Traffic Signal - Maintenance'",
         order: "sr_created_date DESC",
@@ -59,7 +59,7 @@ const definition: DatasetDefinition = {
       },
     },
     {
-      question: "Garbage collection requests in Council District 3",
+      question: "Garbage collection requests in Austin's Council District 3",
       soql: {
         where: "sr_type_desc = 'ARR - Garbage' AND sr_location_council_district = 3",
         order: "sr_created_date DESC",

@@ -24,42 +24,42 @@ const definition: DatasetDefinition = {
   ],
   exemplars: [
     {
-      question: "Street trees maintained by DPW",
+      question: "Street trees in SF maintained by DPW",
       soql: {
         where: "qcaretaker = 'DPW'",
         limit: 1000,
       },
     },
     {
-      question: "Trees planted since 2020",
+      question: "Trees planted in SF since 2020",
       soql: {
         where: "plantdate > '2020-01-01T00:00:00'",
         limit: 1000,
       },
     },
     {
-      question: "London Plane trees",
+      question: "London Plane trees in SF",
       soql: {
         where: "qspecies like '%London Plane%'",
         limit: 1000,
       },
     },
     {
-      question: "Landmark trees",
+      question: "Landmark trees in SF",
       soql: {
         where: "qlegalstatus = 'Landmark tree'",
         limit: 1000,
       },
     },
     {
-      question: "London Plane trees near Golden Gate Park",
+      question: "London Plane trees near Golden Gate Park in SF",
       soql: {
         where: "qspecies like '%London Plane%' AND within_circle(location, 37.7694, -122.4862, 1500)",
         limit: 1000,
       },
     },
     {
-      question: "Large privately-maintained trees",
+      question: "Large privately-maintained trees in SF",
       soql: {
         where: "qcaretaker = 'Private' AND dbh > 24",
         limit: 1000,

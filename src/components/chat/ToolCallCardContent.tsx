@@ -2,10 +2,31 @@ import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { getDataset } from "../../config/datasets";
 import { getDatasetColor } from "../../config/datasetColors";
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
-import type { SocrataQueryParams, SocrataQueryResult } from "../../types/socrataTool";
 import { ErrorObservationBadge } from "./ErrorObservationBadge";
 
-export function ToolCallCardContent({ args, result, isError, toolCallId }: ToolCallMessagePartProps<SocrataQueryParams, SocrataQueryResult>) {
+interface QueryCardParams {
+  datasetId: string;
+  where?: string;
+}
+
+interface QueryCardSuccess {
+  success: true;
+  featureCount: number;
+}
+
+interface QueryCardFailure {
+  success: false;
+  error: { message: string };
+}
+
+type QueryCardResult = QueryCardSuccess | QueryCardFailure;
+
+export function ToolCallCardContent<TArgs extends QueryCardParams, TResult extends QueryCardResult>({
+  args,
+  result,
+  isError,
+  toolCallId,
+}: ToolCallMessagePartProps<TArgs, TResult>) {
   const dataset = args.datasetId ? getDataset(args.datasetId) : undefined;
   const accent = getDatasetColor(args.datasetId);
   const failed = isError || (result && !result.success);

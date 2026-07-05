@@ -7,7 +7,8 @@ import type { Credentials } from "../../types/credentials";
 import { ModelSelect } from "./ModelSelect";
 import { ProviderPresetSelect } from "./ProviderPresetSelect";
 
-const socrataDomains = [...new Set(datasets.map((d) => d.domain))];
+const socrataDatasets = datasets.filter((d) => d.backend === "socrata");
+const socrataDomains = [...new Set(socrataDatasets.map((d) => d.domain))];
 
 interface Props {
   initial?: Credentials;
@@ -161,7 +162,7 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
       )}
 
       {socrataDomains.map((domain) => {
-        const datasetNames = datasets
+        const datasetNames = socrataDatasets
           .filter((d) => d.domain === domain)
           .map((d) => d.name)
           .join(", ");

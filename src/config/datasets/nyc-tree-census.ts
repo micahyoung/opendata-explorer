@@ -2,6 +2,7 @@ import { SOCRATA_DOMAIN } from "../constants";
 import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.schema";
 
 const definition: DatasetDefinition = {
+  backend: "socrata",
   id: "uvpi-gqnh",
   domain: SOCRATA_DOMAIN,
   name: "2015 Street Tree Census",

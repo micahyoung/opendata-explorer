@@ -4,6 +4,7 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 // covers 2025). There is no stable cross-year ID; when a new year's data
 // stops updating, replace this ID with the new year's dataset.
 const definition: DatasetDefinition = {
+  backend: "socrata",
   id: "h73f-gn57",
   domain: "data.lacity.org",
   name: "MyLA311 Service Request Data (2025)",

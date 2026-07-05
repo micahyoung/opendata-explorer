@@ -1,5 +1,5 @@
 import { DEFAULT_LIMIT, SOCRATA_MAX_LIMIT } from "../../config/constants";
-import type { DatasetDefinition } from "../../config/datasets";
+import type { SocrataDatasetDefinition } from "../../config/datasets";
 import type { SocrataQueryParams } from "../../types/socrataTool";
 
 /**
@@ -7,7 +7,7 @@ import type { SocrataQueryParams } from "../../types/socrataTool";
  * authoritative place where `$limit` is clamped and the geo field/endpoint
  * suffix are forced, so no caller (LLM-driven or otherwise) can bypass them.
  */
-export function buildSoqlUrl(dataset: DatasetDefinition, params: SocrataQueryParams, appToken?: string): string {
+export function buildSoqlUrl(dataset: SocrataDatasetDefinition, params: SocrataQueryParams, appToken?: string): string {
   const clampedLimit = Math.min(params.limit ?? DEFAULT_LIMIT, SOCRATA_MAX_LIMIT);
 
   const endpointSuffix = dataset.geo.mode === "native" ? "geojson" : "json";
@@ -23,7 +23,7 @@ export function buildSoqlUrl(dataset: DatasetDefinition, params: SocrataQueryPar
   return url.toString();
 }
 
-function buildSelect(dataset: DatasetDefinition, requestedSelect?: string): string | undefined {
+function buildSelect(dataset: SocrataDatasetDefinition, requestedSelect?: string): string | undefined {
   if (!requestedSelect) return undefined;
   if (requestedSelect.trim() === "*") return undefined; // "*" already selects every column, including geo fields
 
@@ -35,6 +35,6 @@ function buildSelect(dataset: DatasetDefinition, requestedSelect?: string): stri
   return [requestedSelect, ...missingGeoFields].join(", ");
 }
 
-function requiredGeoFields(dataset: DatasetDefinition): string[] {
+function requiredGeoFields(dataset: SocrataDatasetDefinition): string[] {
   return dataset.geo.mode === "native" ? [dataset.geo.field] : [dataset.geo.latField, dataset.geo.lonField];
 }

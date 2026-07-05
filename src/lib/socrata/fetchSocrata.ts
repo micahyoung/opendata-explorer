@@ -1,6 +1,6 @@
 import type { Feature, FeatureCollection, Point } from "geojson";
 import { FETCH_TIMEOUT_MS } from "../../config/constants";
-import type { DatasetDefinition } from "../../config/datasets";
+import type { SocrataDatasetDefinition } from "../../config/datasets";
 import { SocrataHttpError, TimeoutError } from "../utils/errors";
 
 /**
@@ -9,7 +9,7 @@ import { SocrataHttpError, TimeoutError } from "../utils/errors";
  * (geo.mode === "latlon") come back as a plain JSON row array and are
  * converted client-side from their lat/lon fields.
  */
-export async function fetchSocrata(dataset: DatasetDefinition, url: string): Promise<FeatureCollection> {
+export async function fetchSocrata(dataset: SocrataDatasetDefinition, url: string): Promise<FeatureCollection> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 

@@ -10,6 +10,18 @@ export class SocrataHttpError extends Error {
   }
 }
 
+export class ArcgisHttpError extends Error {
+  status: number;
+  body?: string;
+
+  constructor(message: string, status: number, body?: string) {
+    super(message);
+    this.name = "ArcgisHttpError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 export class NominatimHttpError extends Error {
   status: number;
   body?: string;

@@ -1,13 +1,15 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { datasetIds, getDataset } from "../../config/datasets";
+import { BACKEND_SYNTAX_GUIDE, datasetIds, getDataset } from "../../config/datasets";
 import { getCredentials } from "../credentials/credentialStore";
 import { useMapLayersStore } from "../mapState/mapLayersStore";
+import { buildArcgisUrl } from "../arcgis/buildArcgisUrl";
+import { fetchArcgis } from "../arcgis/fetchArcgis";
 import { buildSoqlUrl } from "../socrata/buildSoqlUrl";
 import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
 import { fetchNominatim } from "../geocoding/fetchNominatim";
-import { NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
+import { ArcgisHttpError, NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
 import { listResultSetsTool, readResultRowsTool } from "./resultSetTools";
 
 const geocodeInputSchema = z.object({
@@ -63,7 +65,7 @@ const datasetDetailsInputSchema = z.object({
  */
 export const getDatasetDetailsTool = tool({
   description:
-    "Fetch the field list and example SoQL queries for one or more datasets. Call this before fetchSocrataData for any dataset you haven't already seen the details of this conversation.",
+    "Fetch the field list, example queries, and query-syntax guide for one or more datasets. Call this before querying any dataset you haven't already seen the details of this conversation — its response tells you which fetch tool to call and the exact query syntax that dataset's backend expects.",
   inputSchema: datasetDetailsInputSchema,
   execute: async (params) => {
     return params.datasetIds.map((id) => {
@@ -80,6 +82,7 @@ export const getDatasetDetailsTool = tool({
         success: true as const,
         fields: dataset.fields,
         exemplars: dataset.exemplars,
+        syntaxGuide: BACKEND_SYNTAX_GUIDE[dataset.backend],
       };
     });
   },
@@ -107,10 +110,10 @@ export const fetchSocrataDataTool = tool({
   inputSchema,
   execute: async (params, { toolCallId }) => {
     const dataset = getDataset(params.datasetId);
-    if (!dataset) {
+    if (!dataset || dataset.backend !== "socrata") {
       return {
         success: false as const,
-        error: { kind: "validation" as const, message: `Unknown datasetId: ${params.datasetId}` },
+        error: { kind: "validation" as const, message: `Unknown or non-Socrata datasetId: ${params.datasetId}` },
       };
     }
 
@@ -163,10 +166,84 @@ export const fetchSocrataDataTool = tool({
   },
 });
 
+const arcgisInputSchema = z.object({
+  datasetId: z.enum(datasetIds).describe("The ArcGIS-backed dataset ID to query. Must be one of the supported datasets."),
+  where: z.string().optional().describe("An Esri SQL-92-style where clause body, e.g. BORO = 'K'."),
+  outFields: z.string().optional().describe("Comma-separated outFields column list. Omit or use '*' to select all columns."),
+  orderByFields: z.string().optional().describe("A raw orderByFields clause, e.g. SCHOOLNAME ASC."),
+  resultRecordCount: z.number().int().positive().optional().describe("Desired row count hint. The client enforces its own hard cap."),
+});
+
+/**
+ * The ArcGIS counterpart to fetchSocrataDataTool. No app-token lookup is
+ * needed — the supported ArcGIS Hub FeatureServers are public with open CORS.
+ */
+export const fetchArcGisDataTool = tool({
+  description:
+    "Query one of the supported ArcGIS-backed Open Data datasets via an Esri REST query and render the results on the map. Replaces whatever layer is currently shown.",
+  inputSchema: arcgisInputSchema,
+  execute: async (params, { toolCallId }) => {
+    const dataset = getDataset(params.datasetId);
+    if (!dataset || dataset.backend !== "arcgis") {
+      return {
+        success: false as const,
+        error: { kind: "validation" as const, message: `Unknown or non-ArcGIS datasetId: ${params.datasetId}` },
+      };
+    }
+
+    const url = buildArcgisUrl(dataset, params);
+
+    try {
+      const featureCollection = await fetchArcgis(url);
+
+      if (featureCollection.features.length === 0) {
+        return {
+          success: false as const,
+          error: { kind: "empty" as const, message: "Query returned zero results. Try loosening the filter." },
+          datasetId: dataset.id,
+        };
+      }
+
+      useMapLayersStore.getState().addLayer({
+        id: toolCallId,
+        datasetId: dataset.id,
+        where: params.where,
+        featureCollection,
+      });
+
+      const facets = computeFacets(dataset, featureCollection);
+      const facetSummary = formatFacetSummary(facets);
+
+      return {
+        success: true as const,
+        datasetId: dataset.id,
+        where: params.where,
+        featureCount: featureCollection.features.length,
+        facets,
+        resultSetId: toolCallId,
+        breadcrumb: `Current view: dataset=${dataset.id}, where=${params.where ?? "(none)"}, resultCount=${featureCollection.features.length}, resultSetId=${toolCallId}${facetSummary ? `. Field breakdown — ${facetSummary}` : ""}`,
+      };
+    } catch (err) {
+      if (err instanceof ArcgisHttpError) {
+        return {
+          success: false as const,
+          error: { kind: "http" as const, message: `ArcGIS rejected the query (HTTP ${err.status}): ${err.body ?? err.message}` },
+          datasetId: dataset.id,
+        };
+      }
+      if (err instanceof TimeoutError) {
+        throw err; // unrecoverable: surfaces as a chat-level error
+      }
+      throw err;
+    }
+  },
+});
+
 export const tools = {
   geocodeLocation: geocodeLocationTool,
   getDatasetDetails: getDatasetDetailsTool,
   fetchSocrataData: fetchSocrataDataTool,
+  fetchArcGisData: fetchArcGisDataTool,
   listResultSets: listResultSetsTool,
   readResultRows: readResultRowsTool,
 };

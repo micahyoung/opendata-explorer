@@ -1,6 +1,7 @@
 import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.schema";
 
 const definition: DatasetDefinition = {
+  backend: "socrata",
   id: "xwdj-i9he",
   domain: "data.austintexas.gov",
   name: "Austin 311 Public Data",

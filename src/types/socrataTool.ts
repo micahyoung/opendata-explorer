@@ -1,5 +1,5 @@
 import type { FieldFacet } from "../lib/socrata/computeFacets";
-import type { DatasetField, SoqlExemplar } from "../config/datasets";
+import type { ArcgisExemplar, DatasetField, SoqlExemplar } from "../config/datasets";
 
 export interface SocrataQueryParams {
   datasetId: string;
@@ -38,7 +38,8 @@ export interface DatasetDetailsSuccess {
   datasetId: string;
   success: true;
   fields: DatasetField[];
-  exemplars: SoqlExemplar[];
+  exemplars: SoqlExemplar[] | ArcgisExemplar[];
+  syntaxGuide: string;
 }
 
 export interface DatasetDetailsFailure {

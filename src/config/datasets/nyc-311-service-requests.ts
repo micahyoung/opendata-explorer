@@ -2,6 +2,7 @@ import { SOCRATA_DOMAIN } from "../constants";
 import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.schema";
 
 const definition: DatasetDefinition = {
+  backend: "socrata",
   id: "erm2-nwe9",
   domain: SOCRATA_DOMAIN,
   name: "311 Service Requests",

@@ -2,6 +2,7 @@ import type { Feature } from "geojson";
 import type { DatasetDefinition } from "../../config/datasets";
 
 export function pickCsvColumns(dataset: DatasetDefinition): string[] {
+  if (dataset.backend === "arcgis") return dataset.fields.map((f) => f.name);
   const geoFieldNames = dataset.geo.mode === "native" ? [dataset.geo.field] : [dataset.geo.latField, dataset.geo.lonField];
   return dataset.fields.map((f) => f.name).filter((name) => !geoFieldNames.includes(name));
 }

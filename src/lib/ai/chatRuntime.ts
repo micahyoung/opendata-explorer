@@ -22,10 +22,15 @@ export function useOpenDataChatRuntime() {
     if (!client || !model) return undefined;
 
     const agent = new ToolLoopAgent({
-      // `.responses()` targets the /v1/responses endpoint, now supported by
-      // OpenAI, OpenRouter, and llama-server, and required for provider
-      // reasoning controls (see reasoningEffortMiddleware).
-      model: wrapLanguageModel({ model: client.responses(model), middleware: reasoningEffortMiddleware }),
+      // `.chat()` targets /v1/chat/completions — the interface every BYO-LLM
+      // target actually implements reliably (OpenAI, OpenRouter, llama-server/
+      // Ollama). `/v1/responses` was tried and reverted after llama-server's
+      // non-conformant SSE stream (reasoning event names don't match OpenAI's)
+      // broke tool-call recognition under this SDK's strict parser — see
+      // ggml-org/llama.cpp#20607. reasoningEffortMiddleware's provider-option
+      // keys map onto the same flat reasoning_effort/verbosity body fields
+      // here, so no middleware changes are needed.
+      model: wrapLanguageModel({ model: client.chat(model), middleware: reasoningEffortMiddleware }),
       instructions: buildSystemPrompt(),
       tools,
       stopWhen: stepCountIs(MAX_AGENT_STEPS),

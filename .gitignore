@@ -14,7 +14,7 @@ dist-ssr
 .env
 
 # extract-chat-request skill output (may contain captured request/response bodies)
-.claude/network-captures/
+.debug/network-captures/
 
 # Editor directories and files
 .vscode/*

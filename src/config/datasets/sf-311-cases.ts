@@ -73,6 +73,14 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Bulky item pickup requests in SF",
+      soql: {
+        where: "service_name like '%Bulky%' OR service_subtype like '%Bulky%'",
+        order: "requested_datetime DESC",
+        limit: 1000,
+      },
+    },
   ],
 };
 

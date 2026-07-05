@@ -75,6 +75,14 @@ const definition: DatasetDefinition = {
         limit: 1000,
       },
     },
+    {
+      question: "Pothole complaints in Queens",
+      soql: {
+        where: "borough = 'QUEENS' AND (complaint_type like '%Pothole%' OR descriptor like '%Pothole%')",
+        order: "created_date DESC",
+        limit: 1000,
+      },
+    },
   ],
 };
 

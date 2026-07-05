@@ -126,7 +126,11 @@ export const fetchSocrataDataTool = tool({
       if (featureCollection.features.length === 0) {
         return {
           success: false as const,
-          error: { kind: "empty" as const, message: "Query returned zero results. Try loosening the filter." },
+          error: {
+            kind: "empty" as const,
+            message:
+              "Query returned zero results. Reconsider whether the filter targets the right field, value, or spelling — not just the geographic bounds.",
+          },
           datasetId: dataset.id,
         };
       }
@@ -218,7 +222,11 @@ export const fetchArcGisDataTool = tool({
       if (featureCollection.features.length === 0) {
         return {
           success: false as const,
-          error: { kind: "empty" as const, message: "Query returned zero results. Try loosening the filter." },
+          error: {
+            kind: "empty" as const,
+            message:
+              "Query returned zero results. Reconsider whether the filter targets the right field, value, or spelling — not just the geographic bounds.",
+          },
           datasetId: dataset.id,
         };
       }

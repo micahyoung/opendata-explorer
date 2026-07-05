@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Map, { type MapLayerMouseEvent, type MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
-import { ACTIVE_LAYER_ID, DataLayer } from "./DataLayer";
+import { ACTIVE_LAYER_ID, DataLayer, STACK_COUNT_PROPERTY } from "./DataLayer";
 import { HoverPopup, type HoverInfo } from "./HoverPopup";
 import { MapLegend } from "./MapLegend";
 import { INITIAL_VIEW_STATE, MAP_STYLE_URL } from "./mapStyle";
@@ -13,6 +13,7 @@ export function MapShell() {
   const pendingFlyTo = useMapLayersStore((s) => s.pendingFlyTo);
   const clearFlyTo = useMapLayersStore((s) => s.clearFlyTo);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | undefined>(undefined);
+  const [pinnedInfo, setPinnedInfo] = useState<HoverInfo | undefined>(undefined);
 
   useEffect(() => {
     if (!pendingFlyTo || !mapRef.current) return;
@@ -30,20 +31,28 @@ export function MapShell() {
   // A stale popup from the previous query's features shouldn't survive a new one.
   useEffect(() => {
     setHoverInfo(undefined);
+    setPinnedInfo(undefined);
   }, [activeLayer]);
 
-  const handleMouseMove = (e: MapLayerMouseEvent) => {
+  const infoFromEvent = (e: MapLayerMouseEvent): HoverInfo | undefined => {
     const feature = e.features?.[0];
-    if (feature && activeLayer) {
-      setHoverInfo({
-        longitude: e.lngLat.lng,
-        latitude: e.lngLat.lat,
-        properties: feature.properties,
-        datasetId: activeLayer.datasetId,
-      });
-    } else {
-      setHoverInfo(undefined);
-    }
+    if (!feature || !activeLayer) return undefined;
+    return {
+      longitude: e.lngLat.lng,
+      latitude: e.lngLat.lat,
+      properties: feature.properties,
+      datasetId: activeLayer.datasetId,
+      stackedCount: feature.properties?.[STACK_COUNT_PROPERTY] ?? 1,
+    };
+  };
+
+  const handleMouseMove = (e: MapLayerMouseEvent) => {
+    setHoverInfo(infoFromEvent(e));
+  };
+
+  const handleClick = (e: MapLayerMouseEvent) => {
+    const info = infoFromEvent(e);
+    if (info) setPinnedInfo(info);
   };
 
   return (
@@ -57,9 +66,14 @@ export function MapShell() {
         cursor={hoverInfo ? "pointer" : "grab"}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setHoverInfo(undefined)}
+        onClick={handleClick}
       >
         {activeLayer && <DataLayer layer={activeLayer} />}
-        {hoverInfo && <HoverPopup {...hoverInfo} />}
+        {pinnedInfo ? (
+          <HoverPopup key="pinned" {...pinnedInfo} pinned onClose={() => setPinnedInfo(undefined)} />
+        ) : (
+          hoverInfo && <HoverPopup key="hover" {...hoverInfo} />
+        )}
       </Map>
       <MapLegend />
     </>

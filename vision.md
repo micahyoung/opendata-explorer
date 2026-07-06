@@ -37,7 +37,7 @@ A static, client-rendered SPA with no server runtime and no build-time secrets. 
 * The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local (llama.cpp / Ollama)") which populates the Base URL.
 * The user enters their API Key and optional Socrata App Token(s), then picks a Model from a dropdown populated via the provider's `/v1/models`.
 * Credentials are saved to `localStorage`.
-* A saved configuration can also be shared as a single URL, letting a user reuse it on another device or hand it off without retyping. Since the link carries the API key and any Socrata tokens in the clear, generating one is always an explicit user action, never automatic.
+* A saved configuration can also be shared as a single URL, letting a user reuse it on another device or hand it off without retyping. Since the link carries the API key and any Socrata tokens (obfuscated the same way as `localStorage`, not a real security boundary), generating one is always an explicit user action, never automatic.
 
 **Step 2: Intent Expression & Dataset Discovery**
 * Instead of a blank chat box, the user can start from a clickable suggested question drawn from the curated catalog.

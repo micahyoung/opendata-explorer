@@ -1,23 +1,36 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCredentials } from "../../lib/credentials/useCredentials";
 import { usePendingUrlConfig } from "../../lib/credentials/pendingUrlConfig";
 import { encodeConfigParam } from "../../lib/credentials/urlConfigCodec";
+import type { Credentials } from "../../types/credentials";
 import { CredentialsForm } from "../onboarding/CredentialsForm";
 
 export function SettingsPanel() {
   const credentials = useCredentials((s) => s.credentials);
   const save = useCredentials((s) => s.save);
   const clear = useCredentials((s) => s.clear);
+  const pendingStatus = usePendingUrlConfig((s) => s.status);
   const consumePendingConfig = usePendingUrlConfig((s) => s.consume);
-  const [pendingConfig] = useState(() => (credentials ? consumePendingConfig() : undefined));
-  const [open, setOpen] = useState(!!pendingConfig);
+  const [pendingConfig, setPendingConfig] = useState<Credentials | undefined>(undefined);
+  const consumedRef = useRef(false);
+  const [open, setOpen] = useState(false);
   const [copyLabel, setCopyLabel] = useState("Copy config link");
+
+  useEffect(() => {
+    if (consumedRef.current || !credentials || pendingStatus !== "ready") return;
+    consumedRef.current = true;
+    const config = consumePendingConfig();
+    if (config) {
+      setPendingConfig(config);
+      setOpen(true);
+    }
+  }, [credentials, pendingStatus, consumePendingConfig]);
 
   const formInitial = pendingConfig ?? credentials;
 
-  function handleCopyLink() {
+  async function handleCopyLink() {
     if (!credentials) return;
-    const encoded = encodeConfigParam(credentials);
+    const encoded = await encodeConfigParam(credentials);
     const url = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
     navigator.clipboard.writeText(url);
     setCopyLabel("Copied!");
@@ -63,7 +76,8 @@ export function SettingsPanel() {
                 {copyLabel}
               </button>
               <p className="field-hint">
-                This link contains your API key in plain (reversibly-compressed) form — share it like a password.
+                This link contains your API key, lightly obfuscated and tied to this domain — it won't work if
+                pasted on another site. Still share it like a password.
               </p>
             </>
           )}

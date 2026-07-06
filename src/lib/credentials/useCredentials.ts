@@ -13,14 +13,18 @@ interface CredentialsState {
  * SettingsPanel edits propagate immediately to anything reading credentials
  * (e.g. the memoized AI client) without requiring a page reload.
  */
-export const useCredentials = create<CredentialsState>((set) => ({
-  credentials: getCredentials(),
-  save: (credentials) => {
-    setCredentials(credentials);
-    set({ credentials });
-  },
-  clear: () => {
-    clearCredentials();
-    set({ credentials: undefined });
-  },
-}));
+export const useCredentials = create<CredentialsState>((set) => {
+  getCredentials().then((credentials) => set({ credentials }));
+
+  return {
+    credentials: undefined,
+    save: (credentials) => {
+      setCredentials(credentials); // fire-and-forget write; state updates optimistically below
+      set({ credentials });
+    },
+    clear: () => {
+      clearCredentials();
+      set({ credentials: undefined });
+    },
+  };
+});

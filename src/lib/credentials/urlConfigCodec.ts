@@ -1,13 +1,16 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { credentialsSchema, type Credentials } from "../../types/credentials";
+import { decryptForHost, encryptForHost } from "./hostCipher";
 
-export function encodeConfigParam(credentials: Credentials): string {
-  return compressToEncodedURIComponent(JSON.stringify(credentials));
+export async function encodeConfigParam(credentials: Credentials): Promise<string> {
+  const compressed = compressToEncodedURIComponent(JSON.stringify(credentials));
+  return encryptForHost(compressed, window.location.hostname);
 }
 
-export function decodeConfigParam(raw: string): Credentials | undefined {
+export async function decodeConfigParam(raw: string): Promise<Credentials | undefined> {
   try {
-    const json = decompressFromEncodedURIComponent(raw);
+    const compressed = await decryptForHost(raw, window.location.hostname);
+    const json = decompressFromEncodedURIComponent(compressed);
     if (!json) return undefined;
     return credentialsSchema.parse(JSON.parse(json));
   } catch {

@@ -51,9 +51,9 @@ export function OnboardingModal() {
             OpenAI-compatible endpoint that supports tool calling.
           </p>
           <p style={{ fontSize: 13.5, color: "var(--ink-muted)" }}>
-            Your API key is stored <strong style={{ color: "var(--ink)" }}>unencrypted in localStorage</strong> and
-            is sent only to the endpoint you configure below. Providers that block direct browser requests aren't
-            supported — use a CORS-enabled local server or a browser-friendly provider like OpenRouter.
+            Your API key is stored in your browser's localStorage, and is sent only to the endpoint you configure
+            below. Providers that block direct browser requests aren't supported — use a CORS-enabled local server
+            or a browser-friendly provider like OpenRouter.
           </p>
           <CredentialsForm initial={pendingConfig} submitLabel="Save and start exploring" onSubmit={save} />
         </div>

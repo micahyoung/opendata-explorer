@@ -22,6 +22,7 @@ import raleighStreetParkTrees from "./raleigh-street-park-trees";
 import durhamTreesPlantingSites from "./durham-trees-planting-sites";
 import dc311ServiceRequests from "./dc-311-service-requests";
 import dcStreetTrees from "./dc-street-trees";
+import dcAutomatedSafetyCameras from "./dc-automated-safety-cameras";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -47,6 +48,7 @@ export const datasets: DatasetDefinition[] = [
   durhamTreesPlantingSites,
   dc311ServiceRequests,
   dcStreetTrees,
+  dcAutomatedSafetyCameras,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

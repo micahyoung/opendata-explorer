@@ -41,6 +41,9 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
   const [socrataAppTokens, setSocrataAppTokens] = useState<Record<string, string>>(
     initial?.socrataAppTokens ?? {}
   );
+  const addedDomains = Object.keys(socrataAppTokens);
+  const remainingDomains = socrataDomains.filter((d) => !addedDomains.includes(d));
+  const [domainToAdd, setDomainToAdd] = useState(remainingDomains[0] ?? "");
   const [error, setError] = useState("");
   const [modelList, setModelList] = useState<ModelListState>({ status: "idle" });
 
@@ -80,6 +83,23 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseURL, apiKey]);
+
+  const selectedDomainToAdd = remainingDomains.includes(domainToAdd) ? domainToAdd : (remainingDomains[0] ?? "");
+
+  function addToken(domain: string) {
+    if (!domain) return;
+    setSocrataAppTokens((prev) => ({ ...prev, [domain]: "" }));
+    const next = remainingDomains.filter((d) => d !== domain);
+    setDomainToAdd(next[0] ?? "");
+  }
+
+  function removeToken(domain: string) {
+    setSocrataAppTokens((prev) => {
+      const next = { ...prev };
+      delete next[domain];
+      return next;
+    });
+  }
 
   function handlePresetChange(id: string) {
     setPresetId(id);
@@ -161,25 +181,65 @@ export function CredentialsForm({ initial, onSubmit, submitLabel }: Props) {
         </>
       )}
 
-      {socrataDomains.map((domain) => {
-        const datasetNames = socrataDatasets
-          .filter((d) => d.domain === domain)
-          .map((d) => d.name)
-          .join(", ");
-        return (
-          <label key={domain} style={{ display: "block", marginBottom: 16 }}>
-            <span className="field-label">Socrata app token for {domain} (optional)</span>
-            <input
+      <div style={{ marginBottom: 16 }}>
+        <span className="field-label">Socrata app tokens (optional)</span>
+        <p className="field-hint" style={{ marginTop: 0 }}>
+          Only needed to raise rate limits on the Socrata domains you actually query.
+        </p>
+
+        {addedDomains.map((domain) => {
+          const datasetNames = socrataDatasets
+            .filter((d) => d.domain === domain)
+            .map((d) => d.name)
+            .join(", ");
+          return (
+            <div key={domain} style={{ marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  className="field-input"
+                  type="password"
+                  autoComplete="off"
+                  placeholder={`Token for ${domain}`}
+                  value={socrataAppTokens[domain] ?? ""}
+                  onChange={(e) => setSocrataAppTokens((prev) => ({ ...prev, [domain]: e.target.value }))}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => removeToken(domain)}
+                  aria-label={`Remove token for ${domain}`}
+                >
+                  Remove
+                </button>
+              </div>
+              <p className="field-hint">
+                {domain} — used by: {datasetNames}
+              </p>
+            </div>
+          );
+        })}
+
+        {remainingDomains.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <select
               className="field-input"
-              type="password"
-              autoComplete="off"
-              value={socrataAppTokens[domain] ?? ""}
-              onChange={(e) => setSocrataAppTokens((prev) => ({ ...prev, [domain]: e.target.value }))}
-            />
-            <p className="field-hint">Used by: {datasetNames}</p>
-          </label>
-        );
-      })}
+              value={selectedDomainToAdd}
+              onChange={(e) => setDomainToAdd(e.target.value)}
+              style={{ flex: 1 }}
+            >
+              {remainingDomains.map((domain) => (
+                <option key={domain} value={domain}>
+                  {domain}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="btn" onClick={() => addToken(selectedDomainToAdd)}>
+              + Add
+            </button>
+          </div>
+        )}
+      </div>
 
       {error && (
         <p style={{ color: "var(--alert-orange-dark)", fontSize: 13, marginTop: -6, marginBottom: 12 }}>{error}</p>

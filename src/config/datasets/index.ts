@@ -30,6 +30,9 @@ import denverPublicSchools from "./denver-public-schools";
 import baltimore311ServiceRequests from "./baltimore-311-service-requests";
 import baltimoreRedLightCameras from "./baltimore-red-light-cameras";
 import baltimoreStreetTrees from "./baltimore-street-trees";
+import louisville311 from "./louisville-311";
+import cleveland311 from "./cleveland-311";
+import newOrleans311 from "./new-orleans-311";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -63,6 +66,9 @@ export const datasets: DatasetDefinition[] = [
   baltimore311ServiceRequests,
   baltimoreRedLightCameras,
   baltimoreStreetTrees,
+  louisville311,
+  cleveland311,
+  newOrleans311,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

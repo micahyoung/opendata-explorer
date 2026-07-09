@@ -70,6 +70,36 @@ describe("computeFacets", () => {
     expect(facet.distinctCount).toBe(500);
   });
 
+  it("folds null/undefined/empty-string values into an implicit Other bucket instead of a literal (null) category", () => {
+    const dataset = makeDataset([{ name: "species", type: "text", description: "", facetable: true }]);
+    const rows: Record<string, unknown>[] = [
+      { species: "Willow Oak" },
+      { species: "Willow Oak" },
+      { species: "Red Maple" },
+      { species: null },
+      { species: null },
+      { species: undefined },
+      { species: "" },
+    ];
+    const fc = makeFeatureCollection(rows);
+    const facets = computeFacets(dataset, fc);
+
+    const facet = facets[0];
+    expect(facet.topValues.map((v) => v.value)).toEqual(["Willow Oak", "Red Maple"]);
+    expect(facet.topValues.some((v) => v.value === "(null)")).toBe(false);
+    // 2 known species + 1 abstract "missing" bucket so hasOther still triggers downstream
+    expect(facet.distinctCount).toBe(3);
+  });
+
+  it("does not report an Other bucket when no rows are missing the field", () => {
+    const dataset = makeDataset([{ name: "species", type: "text", description: "", facetable: true }]);
+    const fc = makeFeatureCollection([{ species: "Willow Oak" }, { species: "Red Maple" }]);
+    const facets = computeFacets(dataset, fc);
+
+    expect(facets[0].distinctCount).toBe(2);
+    expect(facets[0].topValues).toHaveLength(2);
+  });
+
   it("returns no facets for an empty feature collection", () => {
     const dataset = makeDataset([{ name: "route", type: "text", description: "", facetable: true }]);
     const fc = makeFeatureCollection([]);

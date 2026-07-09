@@ -29,6 +29,7 @@ export function computeFacets(dataset: DatasetDefinition, featureCollection: Fea
     const counts = new Map<string, number>();
     let overflowed = false;
     let presentInAnyFeature = false;
+    let missingCount = 0;
 
     for (const feature of featureCollection.features) {
       const properties = feature.properties;
@@ -36,7 +37,16 @@ export function computeFacets(dataset: DatasetDefinition, featureCollection: Fea
       presentInAnyFeature = true;
 
       const raw = properties[field];
-      const value = raw === null || raw === undefined ? "(null)" : String(raw);
+      if (raw === null || raw === undefined || raw === "") {
+        // Rows missing this field's value are folded into the "Other" bucket
+        // (via distinctCount below) rather than minted as their own "(null)"
+        // category — a category legend entry for "missing data" isn't a
+        // meaningful bucket to a user, e.g. Durham's empty tree-planting
+        // sites have no species by definition, not a "(null)" species.
+        missingCount++;
+        continue;
+      }
+      const value = String(raw);
 
       const existing = counts.get(value);
       if (existing !== undefined) {
@@ -57,7 +67,7 @@ export function computeFacets(dataset: DatasetDefinition, featureCollection: Fea
 
     facets.push({
       field,
-      distinctCount: counts.size,
+      distinctCount: counts.size + (missingCount > 0 ? 1 : 0),
       overflowed,
       topValues,
     });

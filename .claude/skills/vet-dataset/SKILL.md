@@ -1,9 +1,9 @@
 ---
-name: find-dataset
+name: vet-dataset
 description: Vet a candidate civic-open-data dataset against this app's catalog qualifying bar. Use for "check if X dataset would work", "is Y suitable for the catalog", "vet this dataset", "find a dataset for <city>", or naming a candidate city/dataset to add. Always invoke instead of manually curling/WebFetching candidate endpoints by hand.
 ---
 
-# Find Dataset
+# Vet Dataset
 
 Vets candidate datasets for the curated catalog in two phases: non-deterministic discovery (find the real live endpoint) and deterministic verification (`scripts/check_candidate.mjs`) against the same bar every dataset in `src/config/datasets/` was held to.
 
@@ -27,8 +27,8 @@ This step is not scripted — use WebSearch/WebFetch/Bash `curl` with judgment, 
 For every candidate found in step 2, run the checker via Bash:
 
 ```
-node .claude/skills/find-dataset/scripts/check_candidate.mjs --backend arcgis --url <FeatureServer/MapServer layer URL>
-node .claude/skills/find-dataset/scripts/check_candidate.mjs --backend socrata --domain <domain> --id <resource-id>
+node .claude/skills/vet-dataset/scripts/check_candidate.mjs --backend arcgis --url <FeatureServer/MapServer layer URL>
+node .claude/skills/vet-dataset/scripts/check_candidate.mjs --backend socrata --domain <domain> --id <resource-id>
 ```
 
 Optional flags: `--sample-size` (default 500), `--timeout-ms` (default 15000, mirrors `FETCH_TIMEOUT_MS` in `src/config/constants.ts`).

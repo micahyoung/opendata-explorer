@@ -25,6 +25,7 @@ import dcStreetTrees from "./dc-street-trees";
 import dcAutomatedSafetyCameras from "./dc-automated-safety-cameras";
 import dcPublicSchools from "./dc-public-schools";
 import denverTreeInventory from "./denver-tree-inventory";
+import denverTrafficAccidents from "./denver-traffic-accidents";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -53,6 +54,7 @@ export const datasets: DatasetDefinition[] = [
   dcAutomatedSafetyCameras,
   dcPublicSchools,
   denverTreeInventory,
+  denverTrafficAccidents,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

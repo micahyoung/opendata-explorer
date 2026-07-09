@@ -17,6 +17,7 @@ import nycPublicSchools from "./nyc-public-school-locations";
 import sfAutomatedSpeedEnforcement from "./sf-automated-speed-enforcement";
 import chicagoSpeedCameraViolations from "./chicago-speed-camera-violations";
 import chicagoRedLightCameraViolations from "./chicago-red-light-camera-violations";
+import raleigh311Requests from "./raleigh-311-requests";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -37,6 +38,7 @@ export const datasets: DatasetDefinition[] = [
   sfAutomatedSpeedEnforcement,
   chicagoSpeedCameraViolations,
   chicagoRedLightCameraViolations,
+  raleigh311Requests,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

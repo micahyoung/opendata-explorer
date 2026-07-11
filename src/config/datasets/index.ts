@@ -43,6 +43,9 @@ import mesaTreeInventory from "./mesa-tree-inventory";
 import baltimorePublicSchools from "./baltimore-public-schools";
 import cincinnatiCountywideSchools from "./cincinnati-countywide-schools";
 import nashvillePiniSchools from "./nashville-pini-schools";
+import houstonISDSchools from "./houston-isd-schools";
+import phoenixTreeInventory from "./phoenix-tree-inventory";
+import seattlePublicSchools from "./seattle-public-schools";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -89,6 +92,9 @@ export const datasets: DatasetDefinition[] = [
   baltimorePublicSchools,
   cincinnatiCountywideSchools,
   nashvillePiniSchools,
+  houstonISDSchools,
+  phoenixTreeInventory,
+  seattlePublicSchools,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

@@ -83,9 +83,11 @@ async function checkArcgis(url) {
   stats.queryLatencyMs = elapsedMs;
 
   const features = sampleBody.features ?? [];
-  const withGeometry = features.filter(
-    (f) => f.geometry && Array.isArray(f.geometry.coordinates) && f.geometry.coordinates.length === 2,
-  ).length;
+  const withGeometry = features.filter((f) => {
+    if (!f.geometry || !Array.isArray(f.geometry.coordinates) || f.geometry.coordinates.length !== 2) return false;
+    const [lon, lat] = f.geometry.coordinates;
+    return !(lon === 0 && lat === 0); // "Null Island" failed-geocode sentinel, not a real point
+  }).length;
   const sampleFillRate = features.length > 0 ? withGeometry / features.length : 0;
   stats.sampleFillRate = Number(sampleFillRate.toFixed(4));
   stats.sampleSize = features.length;

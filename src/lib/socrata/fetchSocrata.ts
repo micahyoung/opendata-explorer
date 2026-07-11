@@ -2,6 +2,7 @@ import type { Feature, FeatureCollection } from "geojson";
 import { FETCH_TIMEOUT_MS } from "../../config/constants";
 import type { SocrataDatasetDefinition } from "../../config/datasets";
 import { SocrataHttpError, TimeoutError } from "../utils/errors";
+import { isNullIsland } from "../utils/isNullIsland";
 import { rowsToFeatureCollection } from "../utils/rowsToFeatureCollection";
 
 /**
@@ -43,10 +44,8 @@ export async function fetchSocrata(dataset: SocrataDatasetDefinition, url: strin
   return rowsToFeatureCollection(rows, dataset.geo.latField, dataset.geo.lonField);
 }
 
-// Socrata rows sometimes carry a failed-geocode sentinel of (0, 0) — "Null
-// Island" — rather than a null geometry. Drop those so they don't render.
 function isNullIslandFeature(feature: Feature): boolean {
   if (feature.geometry?.type !== "Point") return false;
   const [lon, lat] = feature.geometry.coordinates;
-  return lat === 0 && lon === 0;
+  return isNullIsland(lat, lon);
 }

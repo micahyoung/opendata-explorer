@@ -1,14 +1,9 @@
 import type { Feature, FeatureCollection, Point } from "geojson";
+import { isNullIsland } from "./isNullIsland";
 
 // Some backends (Socrata's "latlon" geo mode, CKAN's DataStore) return plain
-// JSON rows with separate lat/lon fields rather than native GeoJSON. Rows
-// sometimes carry a failed-geocode sentinel of (0, 0) — "Null Island" —
-// rather than a null geometry. Both are normalized here so callers get a
-// clean FeatureCollection.
-function isNullIsland(lat: number, lon: number): boolean {
-  return lat === 0 && lon === 0;
-}
-
+// JSON rows with separate lat/lon fields rather than native GeoJSON, so this
+// normalizes both into a clean FeatureCollection.
 export function rowsToFeatureCollection(
   rows: Record<string, unknown>[],
   latField: string,

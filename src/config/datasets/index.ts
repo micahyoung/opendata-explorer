@@ -46,6 +46,9 @@ import nashvillePiniSchools from "./nashville-pini-schools";
 import houstonISDSchools from "./houston-isd-schools";
 import phoenixTreeInventory from "./phoenix-tree-inventory";
 import seattlePublicSchools from "./seattle-public-schools";
+import laCountyParkwayTrees from "./la-county-parkway-trees";
+import chicagoCPSSchools from "./chicago-cps-schools";
+import bostonPublicSchools from "./boston-public-schools";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -95,6 +98,9 @@ export const datasets: DatasetDefinition[] = [
   houstonISDSchools,
   phoenixTreeInventory,
   seattlePublicSchools,
+  laCountyParkwayTrees,
+  chicagoCPSSchools,
+  bostonPublicSchools,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

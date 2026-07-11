@@ -1,5 +1,6 @@
 export const SOCRATA_MAX_LIMIT = 5000;
 export const ARCGIS_MAX_RECORD_COUNT = 5000;
+export const CKAN_MAX_LIMIT = 5000;
 export const DEFAULT_LIMIT = 1000;
 export const DEFAULT_ROW_READ_LIMIT = 50;
 export const MAX_ROW_READ_LIMIT = 200;

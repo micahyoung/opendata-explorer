@@ -1,5 +1,6 @@
 import { makeAssistantToolUI } from "@assistant-ui/react";
 import type { ArcgisQueryParams, ArcgisQueryResult } from "../../types/arcgisTool";
+import type { CkanQueryParams, CkanQueryResult } from "../../types/ckanTool";
 import type { SocrataQueryParams, SocrataQueryResult } from "../../types/socrataTool";
 import { ToolCallCardContent } from "./ToolCallCardContent";
 
@@ -10,5 +11,10 @@ export const ToolCallCard = makeAssistantToolUI<SocrataQueryParams, SocrataQuery
 
 export const ArcGisToolCallCard = makeAssistantToolUI<ArcgisQueryParams, ArcgisQueryResult>({
   toolName: "fetchArcGisData",
+  render: ToolCallCardContent,
+});
+
+export const CkanToolCallCard = makeAssistantToolUI<CkanQueryParams, CkanQueryResult>({
+  toolName: "fetchCkanData",
   render: ToolCallCardContent,
 });

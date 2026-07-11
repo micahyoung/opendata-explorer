@@ -13,7 +13,7 @@ import { usePinnedPointsStore } from "../../lib/mapState/pinnedPointsStore";
 import { datasets } from "../../config/datasets";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
-import { ArcGisToolCallCard, ToolCallCard } from "./ToolCallCard";
+import { ArcGisToolCallCard, CkanToolCallCard, ToolCallCard } from "./ToolCallCard";
 
 const MarkdownText = () => <MarkdownTextPrimitive />;
 
@@ -91,6 +91,7 @@ export function ChatPanel() {
     <AssistantRuntimeProvider runtime={runtime}>
       <ToolCallCard />
       <ArcGisToolCallCard />
+      <CkanToolCallCard />
       <DatasetDetailsCard />
       <GeocodeCard />
       <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--paper-raised)" }}>

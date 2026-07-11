@@ -34,6 +34,17 @@ export const arcgisExemplarSchema = z.object({
 });
 export type ArcgisExemplar = z.infer<typeof arcgisExemplarSchema>;
 
+export const ckanExemplarSchema = z.object({
+  question: z.string(),
+  query: z.object({
+    filters: z.record(z.string(), z.string()).optional(),
+    q: z.string().optional(),
+    sort: z.string().optional(),
+    limit: z.number().int().positive().optional(),
+  }),
+});
+export type CkanExemplar = z.infer<typeof ckanExemplarSchema>;
+
 /**
  * Not every Socrata dataset exposes a native `location`-typed column that the
  * `.geojson` endpoint can render directly (e.g. the tree census only has
@@ -88,14 +99,32 @@ const arcgisDatasetSchema = z
   })
   .superRefine(requireCategoryField);
 
-export const datasetDefinitionSchema = z.discriminatedUnion("backend", [socrataDatasetSchema, arcgisDatasetSchema]);
+const ckanDatasetSchema = z
+  .object({
+    backend: z.literal("ckan"),
+    ...baseDatasetShape,
+    portalUrl: z.string().describe("Base CKAN portal URL, e.g. https://data.boston.gov"),
+    resourceId: z.string().describe("CKAN DataStore resource ID"),
+    geo: geoConfigSchema,
+    exemplars: z.array(ckanExemplarSchema).min(1),
+  })
+  .superRefine(requireCategoryField);
+
+export const datasetDefinitionSchema = z.discriminatedUnion("backend", [
+  socrataDatasetSchema,
+  arcgisDatasetSchema,
+  ckanDatasetSchema,
+]);
 export type DatasetDefinition = z.infer<typeof datasetDefinitionSchema>;
 export type SocrataDatasetDefinition = z.infer<typeof socrataDatasetSchema>;
 export type ArcgisDatasetDefinition = z.infer<typeof arcgisDatasetSchema>;
+export type CkanDatasetDefinition = z.infer<typeof ckanDatasetSchema>;
 
-export const BACKEND_SYNTAX_GUIDE: Record<"socrata" | "arcgis", string> = {
+export const BACKEND_SYNTAX_GUIDE: Record<"socrata" | "arcgis" | "ckan", string> = {
   socrata:
     'Call fetchSocrataData. Write "where" as a raw SoQL $where clause body (no leading "WHERE"), e.g. borough = \'QUEENS\' AND complaint_type like \'%Noise%\'. String comparisons in SoQL are case-sensitive; match the casing style shown in the field descriptions and exemplars. Use "select" for a comma-separated column list (omit for all columns), and "order" for a raw SoQL $order clause.',
   arcgis:
     'Call fetchArcGisData. Write "where" as an Esri SQL-92-style clause (no leading "WHERE"), e.g. SCH_TYPE = \'Elementary\' AND BORO = \'K\'. To constrain results to a named place, call geocodeLocation first and pass its boundingBox.minLat/maxLat/minLon/maxLon straight through as the matching minLat/maxLat/minLon/maxLon params (all four together, or omit all four) — this applies an Esri envelope spatial filter ANDed with "where", so combine it with a categorical where clause for extra precision when a matching field exists (e.g. borough). Use "outFields" as a comma-separated column list (omit or use "*" for all columns), and "resultRecordCount" for a row-count hint. Results are always returned as WGS84 GeoJSON, so no coordinate-system handling is needed.',
+  ckan:
+    'Call fetchCkanData. There is no free-form WHERE clause — use "filters" for exact-match column filtering, e.g. {"case_status": "In progress", "neighborhood": "Jamaica Plain"} (all filters are ANDed, values must match exactly including case — check the field descriptions and exemplars for a dataset\'s actual status/category values before guessing one, no wildcard/LIKE support). Use "q" for a free-text search across all fields when an exact filter value isn\'t known. Use "sort" as a raw clause, e.g. "open_date desc".',
 };

@@ -22,6 +22,18 @@ export class ArcgisHttpError extends Error {
   }
 }
 
+export class CkanHttpError extends Error {
+  status: number;
+  body?: string;
+
+  constructor(message: string, status: number, body?: string) {
+    super(message);
+    this.name = "CkanHttpError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 export class NominatimHttpError extends Error {
   status: number;
   body?: string;

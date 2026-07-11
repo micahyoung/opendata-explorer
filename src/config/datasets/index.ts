@@ -34,6 +34,7 @@ import baltimoreStreetTrees from "./baltimore-street-trees";
 import louisville311 from "./louisville-311";
 import cleveland311 from "./cleveland-311";
 import newOrleans311 from "./new-orleans-311";
+import boston311ServiceRequests from "./boston-311-service-requests";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -71,6 +72,7 @@ export const datasets: DatasetDefinition[] = [
   louisville311,
   cleveland311,
   newOrleans311,
+  boston311ServiceRequests,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];
@@ -83,9 +85,11 @@ export type {
   DatasetDefinition,
   SocrataDatasetDefinition,
   ArcgisDatasetDefinition,
+  CkanDatasetDefinition,
   GeoConfig,
   DatasetField,
   SoqlExemplar,
   ArcgisExemplar,
+  CkanExemplar,
 } from "./datasets.schema";
 export { BACKEND_SYNTAX_GUIDE } from "./datasets.schema";

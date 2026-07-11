@@ -5,11 +5,13 @@ import { useCredentials } from "../credentials/useCredentials";
 import { useMapLayersStore } from "../mapState/mapLayersStore";
 import { buildArcgisUrl } from "../arcgis/buildArcgisUrl";
 import { fetchArcgis } from "../arcgis/fetchArcgis";
+import { buildDatastoreSearchUrl } from "../ckan/buildDatastoreSearchUrl";
+import { fetchCkan } from "../ckan/fetchCkan";
 import { buildSoqlUrl } from "../socrata/buildSoqlUrl";
 import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
 import { fetchNominatim } from "../geocoding/fetchNominatim";
-import { ArcgisHttpError, NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
+import { ArcgisHttpError, CkanHttpError, NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
 import { listResultSetsTool, readResultRowsTool } from "./resultSetTools";
 
 const geocodeInputSchema = z.object({
@@ -266,11 +268,91 @@ export const fetchArcGisDataTool = tool({
   },
 });
 
+const ckanInputSchema = z.object({
+  datasetId: z.enum(datasetIds).describe("The CKAN-backed dataset ID to query. Must be one of the supported datasets."),
+  filters: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe('Exact-match filters, e.g. {"case_status": "Open", "neighborhood": "Jamaica Plain"}. All filters are ANDed together; no wildcard/LIKE support.'),
+  q: z.string().optional().describe("Free-text search across all fields, for when an exact filter value isn't known."),
+  sort: z.string().optional().describe("A raw sort clause, e.g. 'open_date desc'."),
+  limit: z.number().int().positive().optional().describe("Desired row count hint. The client enforces its own hard cap."),
+});
+
+/**
+ * The CKAN counterpart to fetchSocrataDataTool/fetchArcGisDataTool. No
+ * credential lookup is needed — datastore_search on the supported CKAN
+ * portals is public with open CORS.
+ */
+export const fetchCkanDataTool = tool({
+  description:
+    "Query one of the supported CKAN-backed Open Data datasets via its DataStore API and render the results on the map. Replaces whatever layer is currently shown.",
+  inputSchema: ckanInputSchema,
+  execute: async (params, { toolCallId }) => {
+    const dataset = getDataset(params.datasetId);
+    if (!dataset || dataset.backend !== "ckan") {
+      return {
+        success: false as const,
+        error: { kind: "validation" as const, message: `Unknown or non-CKAN datasetId: ${params.datasetId}` },
+      };
+    }
+
+    const url = buildDatastoreSearchUrl(dataset, params);
+
+    try {
+      const featureCollection = await fetchCkan(dataset, url);
+
+      if (featureCollection.features.length === 0) {
+        return {
+          success: false as const,
+          error: {
+            kind: "empty" as const,
+            message:
+              "Query returned zero results. Reconsider whether the filter targets the right field, value, or spelling — not just the geographic bounds.",
+          },
+          datasetId: dataset.id,
+        };
+      }
+
+      const facets = computeFacets(dataset, featureCollection);
+      const facetSummary = formatFacetSummary(facets);
+
+      useMapLayersStore.getState().addLayer({
+        id: toolCallId,
+        datasetId: dataset.id,
+        featureCollection,
+        summary: facetSummary,
+      });
+
+      return {
+        success: true as const,
+        datasetId: dataset.id,
+        featureCount: featureCollection.features.length,
+        facets,
+        resultSetId: toolCallId,
+      };
+    } catch (err) {
+      if (err instanceof CkanHttpError) {
+        return {
+          success: false as const,
+          error: { kind: "http" as const, message: `CKAN rejected the query (HTTP ${err.status}): ${err.body ?? err.message}` },
+          datasetId: dataset.id,
+        };
+      }
+      if (err instanceof TimeoutError) {
+        throw err; // unrecoverable: surfaces as a chat-level error
+      }
+      throw err;
+    }
+  },
+});
+
 export const tools = {
   geocodeLocation: geocodeLocationTool,
   getDatasetDetails: getDatasetDetailsTool,
   fetchSocrataData: fetchSocrataDataTool,
   fetchArcGisData: fetchArcGisDataTool,
+  fetchCkanData: fetchCkanDataTool,
   listResultSets: listResultSetsTool,
   readResultRows: readResultRowsTool,
 };

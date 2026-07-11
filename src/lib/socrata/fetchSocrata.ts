@@ -1,7 +1,8 @@
-import type { Feature, FeatureCollection, Point } from "geojson";
+import type { Feature, FeatureCollection } from "geojson";
 import { FETCH_TIMEOUT_MS } from "../../config/constants";
 import type { SocrataDatasetDefinition } from "../../config/datasets";
 import { SocrataHttpError, TimeoutError } from "../utils/errors";
+import { rowsToFeatureCollection } from "../utils/rowsToFeatureCollection";
 
 /**
  * Fetches a Socrata URL built by buildSoqlUrl.ts and normalizes the response
@@ -44,30 +45,8 @@ export async function fetchSocrata(dataset: SocrataDatasetDefinition, url: strin
 
 // Socrata rows sometimes carry a failed-geocode sentinel of (0, 0) — "Null
 // Island" — rather than a null geometry. Drop those so they don't render.
-function isNullIsland(lat: number, lon: number): boolean {
-  return lat === 0 && lon === 0;
-}
-
 function isNullIslandFeature(feature: Feature): boolean {
   if (feature.geometry?.type !== "Point") return false;
   const [lon, lat] = feature.geometry.coordinates;
-  return isNullIsland(lat, lon);
-}
-
-function rowsToFeatureCollection(rows: Record<string, string>[], latField: string, lonField: string): FeatureCollection {
-  const features: Feature<Point>[] = [];
-  for (const row of rows) {
-    const lat = Number(row[latField]);
-    const lon = Number(row[lonField]);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-    if (isNullIsland(lat, lon)) continue;
-
-    const { [latField]: _lat, [lonField]: _lon, ...properties } = row;
-    features.push({
-      type: "Feature",
-      geometry: { type: "Point", coordinates: [lon, lat] },
-      properties,
-    });
-  }
-  return { type: "FeatureCollection", features };
+  return lat === 0 && lon === 0;
 }

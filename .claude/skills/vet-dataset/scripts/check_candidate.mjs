@@ -155,34 +155,55 @@ async function checkSocrata(domain, id) {
     reasons.push("row count is 0");
   }
 
-  const sampleUrl = `https://${domain}/resource/${id}.json?$limit=${sampleSize}`;
-  const { body: sampleRows, elapsedMs } = await fetchJson(sampleUrl);
+  const { elapsedMs } = await fetchJson(`https://${domain}/resource/${id}.json?$limit=${sampleSize}`);
   stats.queryLatencyMs = elapsedMs;
 
   const latField = geoMatches.find((m) => m.kind === "lat")?.name;
   const lonField = geoMatches.find((m) => m.kind === "lon")?.name;
   const nativeField = geoMatches.find((m) => m.kind === "native")?.name;
 
-  const isPopulated = (row) => {
-    if (nativeField && row[nativeField] && (row[nativeField].coordinates || (row[nativeField].latitude && row[nativeField].longitude))) {
-      return true;
-    }
-    if (latField && lonField && row[latField] != null && row[lonField] != null) {
-      return true;
-    }
-    return false;
+  // Fill rate is computed via an exact aggregate COUNT over the whole table, not a
+  // $limit sample — Socrata's default row order is unspecified/insertion-order, which
+  // skews samples for large datasets (e.g. older, worse-geocoded rows sorted first).
+  const countWhereNotNull = async (whereClause) => {
+    const { body } = await fetchJson(
+      `https://${domain}/resource/${id}.json?$select=count(*)&$where=${encodeURIComponent(whereClause)}`,
+    );
+    return Number.parseInt(body[0]?.count ?? "0", 10);
   };
 
-  const rows = Array.isArray(sampleRows) ? sampleRows : [];
-  const populated = rows.filter(isPopulated).length;
-  const sampleFillRate = rows.length > 0 ? populated / rows.length : 0;
-  stats.sampleFillRate = Number(sampleFillRate.toFixed(4));
-  stats.sampleSize = rows.length;
+  // Fill rates are reported per strategy (not OR'd together) because the app config
+  // commits to exactly one field at a time (geo.mode "native" xor "latlon") — a
+  // populated lat/lon pair doesn't help if the config points at an empty native column.
+  const nativeFillRate = hasNativeGeo
+    ? Number((await countWhereNotNull(`${nativeField} IS NOT NULL`) / rowCount).toFixed(4))
+    : null;
+  const latLonFillRate = hasLatLonPair
+    ? Number((await countWhereNotNull(`${latField} IS NOT NULL AND ${lonField} IS NOT NULL`) / rowCount).toFixed(4))
+    : null;
+  stats.nativeFillRate = nativeFillRate;
+  stats.latLonFillRate = latLonFillRate;
 
-  if ((hasNativeGeo || hasLatLonPair) && sampleFillRate < FILL_RATE_THRESHOLD) {
-    reasons.push(
-      `sample populated-coordinate rate ${(sampleFillRate * 100).toFixed(1)}% is below ${FILL_RATE_THRESHOLD * 100}% threshold (most rows ungeocoded)`,
-    );
+  const fillRate = Math.max(nativeFillRate ?? 0, latLonFillRate ?? 0);
+  stats.fillRate = Number(fillRate.toFixed(4));
+
+  // Informational only — a strategy scoring below the bar doesn't block the verdict
+  // as long as at least one strategy (native OR lat/lon) does. It's still surfaced
+  // so the config author knows which specific field to point geo.mode at.
+  if (hasNativeGeo && nativeFillRate < FILL_RATE_THRESHOLD) {
+    stats.notes = [
+      ...(stats.notes ?? []),
+      `native column "${nativeField}" populated-coordinate rate ${(nativeFillRate * 100).toFixed(1)}% is below ${FILL_RATE_THRESHOLD * 100}% threshold — do not use geo.mode "native" for this dataset`,
+    ];
+  }
+  if (hasLatLonPair && latLonFillRate < FILL_RATE_THRESHOLD) {
+    stats.notes = [
+      ...(stats.notes ?? []),
+      `lat/lon columns "${latField}"/"${lonField}" populated-coordinate rate ${(latLonFillRate * 100).toFixed(1)}% is below ${FILL_RATE_THRESHOLD * 100}% threshold — do not use geo.mode "latlon" for this dataset`,
+    ];
+  }
+  if ((hasNativeGeo || hasLatLonPair) && fillRate < FILL_RATE_THRESHOLD) {
+    reasons.push(`no geo strategy meets the ${FILL_RATE_THRESHOLD * 100}% populated-coordinate threshold (most rows ungeocoded)`);
   }
 
   if (elapsedMs >= timeoutMs) {

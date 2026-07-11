@@ -1,0 +1,4 @@
+Proposed Dataset,Reason,Identifier
+Dallas 311 Service Requests,"Socrata; only a free-text lat_location column — (lat,lon)-string geo is deferred, not supported by the fetch layer",www.dallasopendata.com/d7e7-envw
+Minneapolis 311,"ArcGIS point layer but consistently ~78-81% geocoded across 2025-2026 (intrinsic low fill, below 90% bar)",https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/Public_311_2026/FeatureServer/0
+Detroit Improve Detroit Issues,"ArcGIS point layer but only ~2.6% geocoded (intrinsic low fill)",https://services2.arcgis.com/qvkbeam7Wirps6zC/arcgis/rest/services/improve_detroit/FeatureServer/0

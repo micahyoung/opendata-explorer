@@ -6,7 +6,7 @@ Full product vision, architecture, and design rationale: [vision.md](vision.md).
 
 ## Datasets
 
-The curated catalog lives in [`src/config/datasets/`](src/config/datasets/) — one file per dataset, each a `DatasetDefinition` (Socrata or ArcGIS) validated against [`datasets.schema.ts`](src/config/datasets/datasets.schema.ts). See [vision.md § Architectural Guardrails](vision.md#5-architectural-guardrails) for what qualifies a dataset for curation.
+The curated catalog lives in [`src/config/datasets/`](src/config/datasets/) — one file per dataset, each a `DatasetDefinition` (Socrata, ArcGIS, or CKAN) validated against [`datasets.schema.ts`](src/config/datasets/datasets.schema.ts). See [vision.md § Architectural Guardrails](vision.md#5-architectural-guardrails) for what qualifies a dataset for curation.
 
 ## Tech stack
 
@@ -15,7 +15,7 @@ The curated catalog lives in [`src/config/datasets/`](src/config/datasets/) — 
 | Frontend framework | React (Vite) — static SPA, no server runtime |
 | Chat component | [`assistant-ui`](https://www.assistant-ui.com/) |
 | AI orchestration | Vercel AI SDK (`ai` + `@assistant-ui/react-ai-sdk`), calling `/v1/chat/completions` |
-| Data sources | Socrata Open Data (SODA API) and ArcGIS Hub (FeatureServer REST) |
+| Data sources | Socrata Open Data (SODA API), ArcGIS Hub (FeatureServer REST), and CKAN (DataStore API) |
 | Map engine | MapLibre GL JS + `react-map-gl` |
 | Client persistence | `localStorage` (BYO credentials only — see [Privacy trade-off](#privacy-trade-off)) |
 
@@ -68,7 +68,7 @@ Because this app calls your LLM endpoint directly from the browser with no proxy
 
 ## Data access
 
-Each dataset declares its own backend (`socrata` or `arcgis`) — and, for Socrata, its portal `domain` — in its definition under [`src/config/datasets/`](src/config/datasets/). Because Socrata app tokens are portal-specific (a token issued for one portal won't raise rate limits on another), Settings shows one optional app token input per distinct Socrata domain used by the current catalog, derived automatically from the dataset list. It's not required to use the app.
+Each dataset declares its own backend (`socrata`, `arcgis`, or `ckan`) — and, for Socrata, its portal `domain` — in its definition under [`src/config/datasets/`](src/config/datasets/). Because Socrata app tokens are portal-specific (a token issued for one portal won't raise rate limits on another), Settings shows one optional app token input per distinct Socrata domain used by the current catalog, derived automatically from the dataset list. It's not required to use the app.
 
 The client enforces a hard cap on result size and a request timeout regardless of what the model requests, to keep the browser tab responsive.
 
@@ -82,11 +82,11 @@ Credentials live in plaintext `localStorage` — see [vision.md § Plaintext Loc
 npm run dev      # start the dev server
 npm run build     # typecheck + production build
 npm run lint      # oxlint
-npm test          # run the exemplar live-data regression suite (hits real Socrata/ArcGIS endpoints)
+npm test          # run the exemplar live-data regression suite (hits real Socrata/ArcGIS/CKAN endpoints)
 ```
 
 `tests/exemplars.live.test.ts` runs every hand-written example query from `src/config/datasets/*.ts` against its live backend and asserts each returns at least one feature. It's a smoke test, not a snapshot test — it catches upstream dataset/column renames, not content regressions.
 
 ## Adding a dataset
 
-Add a new file under `src/config/datasets/`, export a `DatasetDefinition` matching one of the shapes in [`datasets.schema.ts`](src/config/datasets/datasets.schema.ts) (Socrata or ArcGIS), and register it in [`src/config/datasets/index.ts`](src/config/datasets/index.ts). The system prompt and the tool's dataset enum both derive from that index automatically. See [vision.md § Schema Scope](vision.md#5-architectural-guardrails) for what qualifies a dataset for curation.
+Add a new file under `src/config/datasets/`, export a `DatasetDefinition` matching one of the shapes in [`datasets.schema.ts`](src/config/datasets/datasets.schema.ts) (Socrata, ArcGIS, or CKAN), and register it in [`src/config/datasets/index.ts`](src/config/datasets/index.ts). The system prompt and the tool's dataset enum both derive from that index automatically. See [vision.md § Schema Scope](vision.md#5-architectural-guardrails) for what qualifies a dataset for curation.

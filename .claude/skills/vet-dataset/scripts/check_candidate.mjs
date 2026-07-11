@@ -7,6 +7,8 @@ const { values } = parseArgs({
     url: { type: "string" },
     domain: { type: "string" },
     id: { type: "string" },
+    "portal-url": { type: "string" },
+    "resource-id": { type: "string" },
     "sample-size": { type: "string", default: "500" },
     "timeout-ms": { type: "string", default: "15000" },
   },
@@ -22,8 +24,8 @@ function fail(message) {
   process.exit(1);
 }
 
-if (backend !== "arcgis" && backend !== "socrata") {
-  fail(`--backend must be "arcgis" or "socrata" (got: ${backend})`);
+if (backend !== "arcgis" && backend !== "socrata" && backend !== "ckan") {
+  fail(`--backend must be "arcgis", "socrata", or "ckan" (got: ${backend})`);
 }
 
 async function fetchJson(url, timeoutOverrideMs) {
@@ -122,6 +124,96 @@ function looksLikeGeoColumn(column) {
     return { kind: "lon", name, dataTypeName };
   }
   return null;
+}
+
+// CKAN datastore field types (text, numeric, int4, float8, ...) don't reliably
+// signal "this is a geo column" the way Socrata's views API does (Boston's own
+// lat/lon fields are typed "text"), so classification here is name-only; actual
+// populated-ness is confirmed later by parsing sampled values as numbers.
+function looksLikeCkanGeoField(field) {
+  const name = (field.id ?? "").toLowerCase();
+  const type = (field.type ?? "").toLowerCase();
+  if (type === "geometry" || name === "geometry" || name === "location" || name === "the_geom") {
+    return { kind: "native", name };
+  }
+  if (/(^|_)(lat|latitude)($|_)/.test(name)) {
+    return { kind: "lat", name };
+  }
+  if (/(^|_)(lon|lng|longitude)($|_)/.test(name)) {
+    return { kind: "lon", name };
+  }
+  return null;
+}
+
+async function checkCkan(portalUrl, resourceId) {
+  const reasons = [];
+  const stats = {};
+
+  const searchUrl = `${portalUrl}/api/3/action/datastore_search?resource_id=${encodeURIComponent(resourceId)}&limit=${sampleSize}`;
+  const { body, elapsedMs } = await fetchJson(searchUrl);
+  stats.queryLatencyMs = elapsedMs;
+
+  if (!body.success || !body.result) {
+    fail(`CKAN datastore_search error for ${portalUrl} / ${resourceId}: ${body.error?.message ?? "unknown error"}`);
+  }
+
+  const rowCount = body.result.total ?? 0;
+  stats.rowCount = rowCount;
+  if (rowCount === 0) {
+    reasons.push("row count is 0");
+  }
+
+  const fields = body.result.fields ?? [];
+  const geoMatches = fields.map(looksLikeCkanGeoField).filter(Boolean);
+  const hasNativeGeo = geoMatches.some((m) => m.kind === "native");
+  const hasLatLonPair = geoMatches.some((m) => m.kind === "lat") && geoMatches.some((m) => m.kind === "lon");
+  stats.geoFields = geoMatches;
+
+  if (!hasLatLonPair) {
+    if (hasNativeGeo) {
+      reasons.push(
+        "CKAN native geometry field found but not supported by the fetch layer (geo.mode 'native' is unimplemented) — a separate lat/lon field pair is required",
+      );
+    } else {
+      reasons.push("no separate lat/lon field pair found (CKAN native geometry is also unsupported by the fetch layer)");
+    }
+  }
+
+  const records = body.result.records ?? [];
+  const latField = geoMatches.find((m) => m.kind === "lat")?.name;
+  const lonField = geoMatches.find((m) => m.kind === "lon")?.name;
+  let sampleFillRate = 0;
+  if (hasLatLonPair && records.length > 0) {
+    const withCoords = records.filter((r) => {
+      const lat = Number.parseFloat(r[latField]);
+      const lon = Number.parseFloat(r[lonField]);
+      return Number.isFinite(lat) && Number.isFinite(lon);
+    }).length;
+    sampleFillRate = withCoords / records.length;
+  }
+  stats.sampleFillRate = Number(sampleFillRate.toFixed(4));
+  stats.sampleSize = records.length;
+
+  if (hasLatLonPair && sampleFillRate < FILL_RATE_THRESHOLD) {
+    reasons.push(
+      `sample populated-coordinate rate ${(sampleFillRate * 100).toFixed(1)}% is below ${FILL_RATE_THRESHOLD * 100}% threshold (most rows ungeocoded)`,
+    );
+  }
+
+  if (elapsedMs >= timeoutMs) {
+    reasons.push(
+      `representative query took ${elapsedMs}ms, at/above --timeout-ms=${timeoutMs} (would exceed the app's hard-coded fetch timeout)`,
+    );
+  }
+
+  return {
+    backend: "ckan",
+    portalUrl,
+    resourceId,
+    verdict: reasons.length === 0 ? "qualifies" : "disqualified",
+    reasons,
+    stats,
+  };
 }
 
 async function checkSocrata(domain, id) {
@@ -226,6 +318,11 @@ try {
   if (backend === "arcgis") {
     if (!values.url) fail("--url is required for --backend arcgis");
     emit(await checkArcgis(values.url.replace(/\/+$/, "")));
+  } else if (backend === "ckan") {
+    if (!values["portal-url"] || !values["resource-id"]) {
+      fail("--portal-url and --resource-id are required for --backend ckan");
+    }
+    emit(await checkCkan(values["portal-url"].replace(/\/+$/, ""), values["resource-id"]));
   } else {
     if (!values.domain || !values.id) fail("--domain and --id are required for --backend socrata");
     emit(await checkSocrata(values.domain, values.id));

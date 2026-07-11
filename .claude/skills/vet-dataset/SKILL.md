@@ -13,7 +13,15 @@ Identify one or more natural-language dataset descriptions (e.g. "Philadelphia 3
 
 ## 2. Discovery (per description)
 
-This step is not scripted — use WebSearch/WebFetch/Bash `curl` with judgment, the same technique used for manual vetting. For each description, find one or more candidate live REST endpoints:
+Start with the catalog search script for a fast, deterministic first pass; fall back to WebSearch/WebFetch/curl when it returns nothing or only weak matches:
+
+```
+node .claude/skills/vet-dataset/scripts/search_catalog.mjs --q "<description>" --backend both
+```
+
+This is a first-pass aid, not a full replacement for web search — self-hosted ArcGIS Server instances not registered as ArcGIS Online items are inconsistently indexed by the ArcGIS search API (confirmed: Baltimore's actual street-trees FeatureServer did not surface for `q="Baltimore Street Trees"`, while DC's did), and cities whose open-data portal isn't Socrata or ArcGIS at all (e.g. Boston runs CKAN at data.boston.gov) will correctly return zero Socrata/ArcGIS results even though a real dataset exists elsewhere. If `results` is empty, or the top results look irrelevant/low-confidence (wrong jurisdiction, wrong topic, decoy student-project layers), fall through to the manual technique below.
+
+The rest of this step is not scripted — use WebSearch/WebFetch/Bash `curl` with judgment, the same technique used for manual vetting. For each description, find one or more candidate live REST endpoints:
 
 - An ArcGIS candidate must be a URL ending in `/FeatureServer/{n}` or `/MapServer/{n}` — a specific layer, not a service root or a Hub listing page.
 - A Socrata candidate must be a `domain` + 4x4 `resource id` pair (e.g. `data.cityofnewyork.us` + `erm2-nwe9`).
@@ -50,7 +58,7 @@ A non-zero exit means genuine execution failure (unreachable host, malformed res
 Checks performed, mirroring vision.md §5:
 
 - **ArcGIS:** layer type must be `"Feature Layer"` (rejects non-spatial tables) with `geometryType === "esriGeometryPoint"` (rejects polygons); row count > 0; sampled populated-coordinate rate ≥ 90%; representative query latency below `--timeout-ms`.
-- **Socrata:** column metadata must show a native `location`/`point` column, or a separate numeric lat/lon column pair (rejects free-text-only geo encodings like a serialized `"(lat,lon)"` string); row count > 0; sampled populated-coordinate rate ≥ 90%; representative query latency below `--timeout-ms`.
+- **Socrata:** column metadata must show a native `location`/`point` column, or a separate numeric lat/lon column pair (rejects free-text-only geo encodings like a serialized `"(lat,lon)"` string); row count > 0; exact populated-coordinate rate (via aggregate `COUNT`, not a sample — Socrata's default row order is unspecified and biases samples for large datasets) ≥ 90% for at least one of the two geo strategies; representative query latency below `--timeout-ms`.
 
 ## 4. Synthesize
 

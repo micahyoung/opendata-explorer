@@ -37,6 +37,9 @@ import newOrleans311 from "./new-orleans-311";
 import boston311ServiceRequests from "./boston-311-service-requests";
 import sacramentoStreetTrees from "./sacramento-street-trees";
 import charlotteMecklenburgSchools from "./charlotte-mecklenburg-schools";
+import portlandStreetTrees from "./portland-street-trees";
+import seattleSdotTrees from "./seattle-sdot-trees";
+import mesaTreeInventory from "./mesa-tree-inventory";
 
 export const datasets: DatasetDefinition[] = [
   serviceRequests311,
@@ -77,6 +80,9 @@ export const datasets: DatasetDefinition[] = [
   boston311ServiceRequests,
   sacramentoStreetTrees,
   charlotteMecklenburgSchools,
+  portlandStreetTrees,
+  seattleSdotTrees,
+  mesaTreeInventory,
 ];
 
 export const datasetIds = datasets.map((d) => d.id) as [string, ...string[]];

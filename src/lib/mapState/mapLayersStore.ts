@@ -17,7 +17,6 @@ const MAX_HISTORY = 20;
 interface MapLayersState {
   entries: Map<string, LayerEntry>;
   order: string[];
-  activeId: string | undefined;
   pendingFlyTo: BBox | undefined;
   addLayer: (entry: {
     id: string;
@@ -33,7 +32,6 @@ interface MapLayersState {
 export const useMapLayersStore = create<MapLayersState>((set, get) => ({
   entries: new Map(),
   order: [],
-  activeId: undefined,
   pendingFlyTo: undefined,
   addLayer: (entry) =>
     set((state) => {
@@ -57,7 +55,6 @@ export const useMapLayersStore = create<MapLayersState>((set, get) => ({
       return {
         entries,
         order,
-        activeId: entry.id,
         pendingFlyTo: entries.get(entry.id)?.bbox,
       };
     }),
@@ -65,8 +62,13 @@ export const useMapLayersStore = create<MapLayersState>((set, get) => ({
     const state = get();
     const entry = state.entries.get(id);
     if (!entry) return;
-    if (state.activeId === id) return;
-    set({ activeId: id, pendingFlyTo: entry.bbox });
+    set({ pendingFlyTo: entry.bbox });
   },
   clearFlyTo: () => set({ pendingFlyTo: undefined }),
 }));
+
+export function selectVisibleLayers(state: MapLayersState): LayerEntry[] {
+  return state.order
+    .map((id) => state.entries.get(id))
+    .filter((entry): entry is LayerEntry => entry !== undefined);
+}

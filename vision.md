@@ -75,8 +75,8 @@ A static, client-rendered SPA with no server runtime and no build-time secrets. 
 **Step 5: Contextual Iteration**
 * The user types: *"Switch to trees instead — just the ones in Brooklyn with poor health."*
 * The LLM, maintaining conversational context, regenerates the full query against the new dataset (`boroname = 'Brooklyn' AND health = 'Poor'`) rather than patching the previous one.
-* The map's single active layer is replaced (not stacked) with the new result set.
-* Earlier result sets aren't discarded — they remain recallable, on the map or by the LLM, without a new backend request.
+* The new result set is added to the map as its own layer, stacked alongside whatever's already shown; the camera recenters on just the new layer's bounds.
+* Earlier result sets aren't discarded — they stay visible and interactive on the map, and remain recallable by the LLM without a new backend request. (Clearing or removing individual layers is left to a future pass.)
 
 ## 5. Architectural Guardrails
 

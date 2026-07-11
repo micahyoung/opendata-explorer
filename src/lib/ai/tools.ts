@@ -108,7 +108,7 @@ const inputSchema = z.object({
  */
 export const fetchSocrataDataTool = tool({
   description:
-    "Query one of the supported Open Data datasets via a SoQL query and render the results on the map. Replaces whatever layer is currently shown.",
+    "Query one of the supported Open Data datasets via a SoQL query and render the results on the map. Adds a new layer to the map alongside any existing ones and flies the camera to its bounds.",
   inputSchema,
   execute: async (params, { toolCallId }) => {
     const dataset = getDataset(params.datasetId);
@@ -195,7 +195,7 @@ const arcgisInputSchema = z.object({
  */
 export const fetchArcGisDataTool = tool({
   description:
-    "Query one of the supported ArcGIS-backed Open Data datasets via an Esri REST query and render the results on the map. Replaces whatever layer is currently shown.",
+    "Query one of the supported ArcGIS-backed Open Data datasets via an Esri REST query and render the results on the map. Adds a new layer to the map alongside any existing ones and flies the camera to its bounds.",
   inputSchema: arcgisInputSchema,
   execute: async (params, { toolCallId }) => {
     const dataset = getDataset(params.datasetId);
@@ -286,7 +286,7 @@ const ckanInputSchema = z.object({
  */
 export const fetchCkanDataTool = tool({
   description:
-    "Query one of the supported CKAN-backed Open Data datasets via its DataStore API and render the results on the map. Replaces whatever layer is currently shown.",
+    "Query one of the supported CKAN-backed Open Data datasets via its DataStore API and render the results on the map. Adds a new layer to the map alongside any existing ones and flies the camera to its bounds.",
   inputSchema: ckanInputSchema,
   execute: async (params, { toolCallId }) => {
     const dataset = getDataset(params.datasetId);

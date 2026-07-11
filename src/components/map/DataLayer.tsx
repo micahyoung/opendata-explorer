@@ -7,9 +7,8 @@ import { getDatasetColor } from "../../config/datasetColors";
 import { buildCategoricalColorScale } from "../../lib/mapState/categoricalColor";
 import { coordinateKey } from "../../lib/mapState/geo";
 import type { LayerEntry } from "../../lib/mapState/mapLayersStore";
+import { getDataLayerIds } from "./dataLayerIds";
 
-export const ACTIVE_LAYER_ID = "active-layer-points";
-export const STACK_COUNT_LAYER_ID = "active-layer-stack-count";
 export const STACK_COUNT_PROPERTY = "__stackCount";
 
 // Group features that share the exact same coordinate (e.g. community-centroid geocoding),
@@ -48,10 +47,12 @@ export function DataLayer({ layer }: { layer: LayerEntry }) {
     return (scale?.matchExpression as ExpressionSpecification | undefined) ?? getDatasetColor(layer.datasetId);
   }, [layer.datasetId, layer.featureCollection]);
 
+  const { sourceId, pointsLayerId, stackLayerId } = getDataLayerIds(layer.id);
+
   return (
-    <Source id="active-layer" type="geojson" data={groupedFeatureCollection}>
+    <Source id={sourceId} type="geojson" data={groupedFeatureCollection}>
       <Layer
-        id={ACTIVE_LAYER_ID}
+        id={pointsLayerId}
         type="circle"
         paint={{
           "circle-radius": ["step", ["get", STACK_COUNT_PROPERTY], 4, 10, 10, 100, 16],
@@ -62,7 +63,7 @@ export function DataLayer({ layer }: { layer: LayerEntry }) {
         }}
       />
       <Layer
-        id={STACK_COUNT_LAYER_ID}
+        id={stackLayerId}
         type="symbol"
         filter={[">", ["get", STACK_COUNT_PROPERTY], 1]}
         layout={{

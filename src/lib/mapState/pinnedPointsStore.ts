@@ -6,6 +6,7 @@ export interface PinnedPoint {
   latitude: number;
   properties: Record<string, unknown> | null | undefined;
   datasetId: string;
+  resultSetId: string;
   stackedCount: number;
   pinnedAt: number;
 }

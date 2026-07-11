@@ -10,6 +10,7 @@ export interface HoverInfo {
   latitude: number;
   properties: Record<string, unknown> | null | undefined;
   datasetId: string;
+  resultSetId: string;
   stackedCount: number;
 }
 

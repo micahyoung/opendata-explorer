@@ -10,6 +10,7 @@ import sf311Cases from "./sf-311-cases";
 import la311 from "./la-311";
 import seattle311 from "./seattle-311";
 import austin311 from "./austin-311";
+import kansasCity311 from "./kansas-city-311";
 import calgary311 from "./calgary-311";
 import honolulu311 from "./honolulu-311";
 import batonRouge311 from "./baton-rouge-311";
@@ -25,8 +26,8 @@ import dcStreetTrees from "./dc-street-trees";
 import dcAutomatedSafetyCameras from "./dc-automated-safety-cameras";
 import dcPublicSchools from "./dc-public-schools";
 import denverTreeInventory from "./denver-tree-inventory";
-import denverTrafficAccidents from "./denver-traffic-accidents";
 import denverPublicSchools from "./denver-public-schools";
+import philadelphiaTreeInventory from "./philadelphia-tree-inventory";
 import baltimore311ServiceRequests from "./baltimore-311-service-requests";
 import baltimoreRedLightCameras from "./baltimore-red-light-cameras";
 import baltimoreStreetTrees from "./baltimore-street-trees";
@@ -46,6 +47,7 @@ export const datasets: DatasetDefinition[] = [
   la311,
   seattle311,
   austin311,
+  kansasCity311,
   calgary311,
   honolulu311,
   batonRouge311,
@@ -61,8 +63,8 @@ export const datasets: DatasetDefinition[] = [
   dcAutomatedSafetyCameras,
   dcPublicSchools,
   denverTreeInventory,
-  denverTrafficAccidents,
   denverPublicSchools,
+  philadelphiaTreeInventory,
   baltimore311ServiceRequests,
   baltimoreRedLightCameras,
   baltimoreStreetTrees,

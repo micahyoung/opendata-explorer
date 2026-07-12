@@ -2,12 +2,12 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "arcgis",
-  id: "phoenix-tree-inventory",
+  id: "richmond-tree-inventory",
   featureServerUrl:
     "https://services1.arcgis.com/k3vhq11XkBNeeOfM/arcgis/rest/services/TreeInventoryLive_ViewUFWebPage/FeatureServer/0",
-  name: "Phoenix Tree Inventory",
+  name: "Richmond Tree Inventory",
   description:
-    "City of Phoenix's living inventory of public trees with species, trunk diameter (DBH), condition, overhead utility proximity, neighborhood, planning district, and status.",
+    "City of Richmond, Virginia's living inventory of public trees with species, trunk diameter (DBH), condition, overhead utility proximity, neighborhood, planning district, and status.",
   mapColor: "#2d7a4f",
   categoryField: "SPP",
   fields: [
@@ -25,29 +25,29 @@ const definition: DatasetDefinition = {
   ],
   exemplars: [
     {
-      question: "Good condition trees in Phoenix",
+      question: "Good condition trees in Richmond",
       query: { where: "COND = 'Good'" },
     },
     {
-      question: "Crape myrtles in Phoenix",
+      question: "Crape myrtles in Richmond",
       query: { where: "SPP = 'Lagerstroemia indica'" },
     },
     {
-      question: "Phoenix trees near overhead utilities",
+      question: "Richmond trees near overhead utilities",
       query: { where: "UTILITIES = 'Y'" },
     },
     {
-      question: "Large Phoenix trees with DBH over 24 inches",
+      question: "Large Richmond trees with DBH over 24 inches",
       query: { where: "DBH > 24" },
     },
     {
-      question: "Trees in downtown Phoenix",
+      question: "Trees in downtown Richmond",
       query: {
         where: "1=1",
-        minLat: 33.440,
-        maxLat: 33.465,
-        minLon: -112.095,
-        maxLon: -112.060,
+        minLat: 37.530,
+        maxLat: 37.550,
+        minLon: -77.450,
+        maxLon: -77.425,
       },
     },
   ],

@@ -50,6 +50,24 @@ function emit(result) {
   process.exit(0);
 }
 
+function median(values) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+function centroidFromLonLatPairs(pairs) {
+  if (pairs.length === 0) return null;
+  const lat = median(pairs.map(([, y]) => y));
+  const lon = median(pairs.map(([x]) => x));
+  return { lat, lon };
+}
+
+function stripHtml(text) {
+  return text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 async function checkArcgis(url) {
   const reasons = [];
   const stats = {};
@@ -61,6 +79,25 @@ async function checkArcgis(url) {
 
   stats.layerType = meta.type ?? null;
   stats.geometryType = meta.geometryType ?? null;
+
+  if (meta.serviceItemId) {
+    try {
+      const { body: item } = await fetchJson(
+        `https://www.arcgis.com/sharing/rest/content/items/${meta.serviceItemId}?f=json`,
+      );
+      stats.sourceLocationHint = {
+        title: item.title ?? null,
+        snippet: item.snippet ?? null,
+        description: item.description ? stripHtml(item.description).slice(0, 300) : null,
+        tags: item.tags ?? null,
+        owner: item.owner ?? null,
+      };
+    } catch {
+      stats.sourceLocationHint = null; // no AGO item, or lookup failed — not fatal, informational only
+    }
+  } else {
+    stats.sourceLocationHint = null; // self-hosted ArcGIS Server layer, no portal item to inspect
+  }
 
   if (meta.type !== "Feature Layer") {
     reasons.push(`layer type is "${meta.type}", not "Feature Layer" (likely a non-spatial table)`);
@@ -83,14 +120,16 @@ async function checkArcgis(url) {
   stats.queryLatencyMs = elapsedMs;
 
   const features = sampleBody.features ?? [];
-  const withGeometry = features.filter((f) => {
-    if (!f.geometry || !Array.isArray(f.geometry.coordinates) || f.geometry.coordinates.length !== 2) return false;
-    const [lon, lat] = f.geometry.coordinates;
-    return !(lon === 0 && lat === 0); // "Null Island" failed-geocode sentinel, not a real point
-  }).length;
+  const validCoordPairs = features
+    .filter((f) => f.geometry && Array.isArray(f.geometry.coordinates) && f.geometry.coordinates.length === 2)
+    .map((f) => f.geometry.coordinates)
+    .filter(([lon, lat]) => !(lon === 0 && lat === 0)); // "Null Island" failed-geocode sentinel, not a real point
+  const withGeometry = validCoordPairs.length;
   const sampleFillRate = features.length > 0 ? withGeometry / features.length : 0;
   stats.sampleFillRate = Number(sampleFillRate.toFixed(4));
   stats.sampleSize = features.length;
+  // Median (not the bbox midpoint) resists outlier/bad-geometry rows skewing the extent.
+  stats.sampleCentroid = centroidFromLonLatPairs(validCoordPairs);
 
   if (sampleFillRate < FILL_RATE_THRESHOLD) {
     reasons.push(
@@ -185,16 +224,16 @@ async function checkCkan(portalUrl, resourceId) {
   const latField = geoMatches.find((m) => m.kind === "lat")?.name;
   const lonField = geoMatches.find((m) => m.kind === "lon")?.name;
   let sampleFillRate = 0;
+  let validCoordPairs = [];
   if (hasLatLonPair && records.length > 0) {
-    const withCoords = records.filter((r) => {
-      const lat = Number.parseFloat(r[latField]);
-      const lon = Number.parseFloat(r[lonField]);
-      return Number.isFinite(lat) && Number.isFinite(lon);
-    }).length;
-    sampleFillRate = withCoords / records.length;
+    validCoordPairs = records
+      .map((r) => [Number.parseFloat(r[lonField]), Number.parseFloat(r[latField])])
+      .filter(([lon, lat]) => Number.isFinite(lat) && Number.isFinite(lon));
+    sampleFillRate = validCoordPairs.length / records.length;
   }
   stats.sampleFillRate = Number(sampleFillRate.toFixed(4));
   stats.sampleSize = records.length;
+  stats.sampleCentroid = centroidFromLonLatPairs(validCoordPairs);
 
   if (hasLatLonPair && sampleFillRate < FILL_RATE_THRESHOLD) {
     reasons.push(
@@ -233,6 +272,12 @@ async function checkSocrata(domain, id) {
   const hasLatLonPair = geoMatches.some((m) => m.kind === "lat") && geoMatches.some((m) => m.kind === "lon");
 
   stats.geoColumns = geoMatches;
+  stats.sourceLocationHint = {
+    name: viewMeta.name ?? null,
+    description: viewMeta.description ? stripHtml(viewMeta.description).slice(0, 300) : null,
+    attribution: viewMeta.attribution ?? null,
+    tags: viewMeta.tags ?? null,
+  };
 
   if (!hasNativeGeo && !hasLatLonPair) {
     reasons.push(
@@ -249,12 +294,27 @@ async function checkSocrata(domain, id) {
     reasons.push("row count is 0");
   }
 
-  const { elapsedMs } = await fetchJson(`https://${domain}/resource/${id}.json?$limit=${sampleSize}`);
+  const { body: sampleRecords, elapsedMs } = await fetchJson(
+    `https://${domain}/resource/${id}.json?$limit=${sampleSize}`,
+  );
   stats.queryLatencyMs = elapsedMs;
 
   const latField = geoMatches.find((m) => m.kind === "lat")?.name;
   const lonField = geoMatches.find((m) => m.kind === "lon")?.name;
   const nativeField = geoMatches.find((m) => m.kind === "native")?.name;
+
+  const sampleCoordPairs = (sampleRecords ?? [])
+    .map((r) => {
+      if (hasLatLonPair) {
+        return [Number.parseFloat(r[lonField]), Number.parseFloat(r[latField])];
+      }
+      if (hasNativeGeo && Array.isArray(r[nativeField]?.coordinates)) {
+        return r[nativeField].coordinates; // GeoJSON-style [lon, lat]
+      }
+      return null;
+    })
+    .filter((pair) => pair && Number.isFinite(pair[0]) && Number.isFinite(pair[1]));
+  stats.sampleCentroid = centroidFromLonLatPairs(sampleCoordPairs);
 
   // Fill rate is computed via an exact aggregate COUNT over the whole table, not a
   // $limit sample — Socrata's default row order is unspecified/insertion-order, which

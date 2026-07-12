@@ -76,7 +76,7 @@ The script always exits 0 on a completed check (a `"disqualified"` verdict is a 
   "url": "...",
   "verdict": "qualifies" | "disqualified",
   "reasons": ["..."],
-  "stats": { "rowCount": 123, "sampleFillRate": 0.98, "geometryType": "esriGeometryPoint", "queryLatencyMs": 340 }
+  "stats": { "rowCount": 123, "sampleFillRate": 0.98, "geometryType": "esriGeometryPoint", "queryLatencyMs": 340, "sourceLocationHint": { "...": "..." }, "sampleCentroid": { "lat": 0, "lon": 0 } }
 }
 ```
 
@@ -88,6 +88,8 @@ Checks performed, mirroring vision.md §5:
 - **Socrata:** column metadata must show a native `location`/`point` column, or a separate numeric lat/lon column pair (rejects free-text-only geo encodings like a serialized `"(lat,lon)"` string); row count > 0; exact populated-coordinate rate (via aggregate `COUNT`, not a sample — Socrata's default row order is unspecified and biases samples for large datasets) ≥ 90% for at least one of the two geo strategies; representative query latency below `--timeout-ms`.
 - **CKAN:** DataStore fields (name-matched, since CKAN's declared field types don't reliably signal geo) must include a separate lat/lon field pair — a native `geometry`/`location` field alone disqualifies, since the app's fetch layer only implements CKAN's `latlon` geo mode, not native geometry; row count (`result.total`) > 0; sampled populated-coordinate rate ≥ 90%; representative query latency below `--timeout-ms`.
 
+`stats.sourceLocationHint` (source's own title/description/tags/attribution) and `stats.sampleCentroid` (median lat/lon of the sample, outlier-resistant) are informational only, never affecting `verdict` — a jurisdiction mismatch is a metadata problem, checked in Synthesize below.
+
 ## 5. Synthesize
 
 Combine the script outputs into a final report, grouped by original description:
@@ -97,6 +99,8 @@ Combine the script outputs into a final report, grouped by original description:
 - One-line reasons (straight from the script's `reasons` array)
 - Key stats: row count, fill rate, latency
 - When a description had multiple candidates, state an overall pick (the qualifying one; if several qualify, the fastest/most current) — or state clearly that none qualified and why.
+
+**Cross-check location.** Compare the declared city/jurisdiction against `stats.sourceLocationHint`/`sampleCentroid`. On a clear mismatch (wrong state/region — not just neighboring-county sprawl), report **disqualified — location/jurisdiction mismatch**, overriding a script `"qualifies"` (it only checks architectural fit, not identity).
 
 ### Record durable rejections
 
@@ -108,6 +112,8 @@ For any candidate whose final verdict is `disqualified` for a **durable / archit
 - sensitivity exclusion (deaths / felony-level crime).
 
 **Do NOT record transient failures** — a 5xx / unreachable host (e.g. a service that's temporarily "not started"), a single-year/seasonal low fill, or discovery simply never finding a live endpoint. These are deliberately left out so they get re-vetted later.
+
+**Also skip location/jurisdiction mismatches** — the endpoint itself may be fine under a different, correctly-named candidate, so recording it by URL/domain+id would wrongly hard-skip that future candidate.
 
 Row format is `Proposed Dataset,Reason,Identifier`:
 

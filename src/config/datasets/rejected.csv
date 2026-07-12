@@ -4,4 +4,3 @@ Minneapolis 311,"ArcGIS point layer but consistently ~78-81% geocoded across 202
 Detroit Improve Detroit Issues,"ArcGIS point layer but only ~2.6% geocoded (intrinsic low fill)",https://services2.arcgis.com/qvkbeam7Wirps6zC/arcgis/rest/services/improve_detroit/FeatureServer/0
 Fort Worth 311 Service Requests,"no published open data portal found — data.fortworth.gov does not resolve, no 311 dataset in Socrata/ArcGIS catalog search",N/A
 Tampa 311 Service Requests,"no published open data portal found — data.tampa.gov redirects to tampa.gov (Cloudflare-gated), no 311 dataset in Socrata/ArcGIS catalog search",N/A
-Indianapolis 311 Service Requests,"ArcGIS Hub portal (data.indy.gov) exists but returns zero results for 311 search — no 311 dataset published",data.indy.gov

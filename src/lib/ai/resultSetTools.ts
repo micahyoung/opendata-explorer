@@ -107,7 +107,7 @@ function toRow(row: ActiveResultRow): Record<string, unknown> {
 
 export const readActiveResultsTool = tool({
   description:
-    'Read points currently active on the map, without needing a resultSetId. filter: "visible" (default) returns points in the current map viewport across every past query still rendered; filter: "selected" returns points the user has pinned by clicking, regardless of viewport. Use this instead of readPastResults for "what am I looking at" / "what did I select" questions.',
+    'Read points currently active on the map, without needing a resultSetId. filter: "visible" (default) returns points in the current map viewport across every past query still rendered, plus the viewport\'s own bounding box (viewportBounds: minLat/maxLat/minLon/maxLon, same shape as geocodeLocation\'s boundingBox) so it can be compared directly against row lat/lon or an area the user names; filter: "selected" returns points the user has pinned by clicking, regardless of viewport. Use this instead of readPastResults for "what am I looking at" / "what did I select" questions.',
   inputSchema: readActiveResultsInputSchema,
   execute: async (params) => {
     const offset = params.offset ?? 0;
@@ -146,6 +146,12 @@ export const readActiveResultsTool = tool({
     }
 
     const bounds = mapInstance.getBounds();
+    const viewportBounds = {
+      minLat: bounds.getSouth(),
+      maxLat: bounds.getNorth(),
+      minLon: bounds.getWest(),
+      maxLon: bounds.getEast(),
+    };
     const rows: ActiveResultRow[] = [];
     for (const id of order) {
       const entry = entries.get(id);
@@ -169,6 +175,7 @@ export const readActiveResultsTool = tool({
     return {
       success: true as const,
       filter: "visible" as const,
+      viewportBounds,
       offset,
       returned: slice.length,
       totalVisibleCount: rows.length,

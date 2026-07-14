@@ -13,9 +13,10 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Dynamic Data Rendering:** The ability to visualize thousands of data points (e.g., 311 service requests, tree census) in real-time as MapLibre GL JS layers, surfacing the variation within a result set at a glance rather than just its location.
 * **Point-Level Inspection:** A user can inspect any individual rendered point's details directly, without needing to ask the LLM a follow-up question.
     * Multiple points can be pinned open at once, and a point never silently hides that it represents more than one record (see *Duplicate-Coordinate Disclosure* in § 5 for exactly how that's enforced).
-    * Pinned points are attached to the user's next chat message as grounded context the LLM can reference, so the user never has to redescribe what they clicked.
+    * Pinning, unpinning, panning, zooming, or landing a new query never pushes raw point data to the LLM by itself — it only flips a lightweight change flag. That flag rides along as a one-line nudge on the user's next chat message ("the view has changed"), prompting the LLM to pull current data itself via a tool call rather than trusting stale context.
 * **Result-Set Recall:** A user can revisit any earlier result set from the conversation without re-querying.
-* **Row-Level Grounding for the LLM:** Beyond aggregate facets, the LLM can read a result set's underlying rows when a question calls for specific records.
+* **Row-Level Grounding for the LLM:** Beyond aggregate facets, the LLM can read a specific past result set's underlying rows (by ID) when a question calls for specific records.
+* **Viewport & Selection Grounding for the LLM:** The LLM can also read whatever points are currently on-screen in the map viewport (spanning every past query still rendered, not just the latest one) or currently pinned, without needing a resultSetId — so "what am I looking at" or "what did I select" don't require the user to redescribe the map state in words.
 * **Agentic Soft-Fail & Auto-Correction:** LLMs must be provided tool calls to test queries client-side.
     * If a generated query fails (e.g., hallucinated schema columns), the client must catch the error, return it to the LLM, and prompt a self-correction without breaking the user experience.
 * **Grounded Result Summaries:** The LLM must never narrate what a successful query returned without evidence — its conversational recap should reflect the actual results, not a plausible-sounding guess.

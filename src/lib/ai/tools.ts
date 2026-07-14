@@ -12,7 +12,7 @@ import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
 import { fetchNominatim } from "../geocoding/fetchNominatim";
 import { ArcgisHttpError, CkanHttpError, NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
-import { listResultSetsTool, readResultRowsTool } from "./resultSetTools";
+import { listResultSetsTool, readActiveResultsTool, readPastResultsTool } from "./resultSetTools";
 
 const geocodeInputSchema = z.object({
   query: z
@@ -354,5 +354,6 @@ export const tools = {
   fetchArcGisData: fetchArcGisDataTool,
   fetchCkanData: fetchCkanDataTool,
   listResultSets: listResultSetsTool,
-  readResultRows: readResultRowsTool,
+  readPastResults: readPastResultsTool,
+  readActiveResults: readActiveResultsTool,
 };

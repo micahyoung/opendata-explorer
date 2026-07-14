@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useMapLayersStore } from "./mapLayersStore";
 
 export interface PinnedPoint {
   key: string;
@@ -25,13 +26,18 @@ export const usePinnedPointsStore = create<PinnedPointsState>((set) => ({
       const pins = new Map(state.pins);
       if (pins.has(point.key)) pins.delete(point.key);
       else pins.set(point.key, { ...point, pinnedAt: Date.now() });
+      useMapLayersStore.getState().markActiveResultsChanged();
       return { pins };
     }),
   unpin: (key) =>
     set((state) => {
       const pins = new Map(state.pins);
       pins.delete(key);
+      useMapLayersStore.getState().markActiveResultsChanged();
       return { pins };
     }),
-  clearPins: () => set({ pins: new Map() }),
+  clearPins: () => {
+    useMapLayersStore.getState().markActiveResultsChanged();
+    set({ pins: new Map() });
+  },
 }));

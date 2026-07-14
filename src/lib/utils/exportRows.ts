@@ -42,3 +42,12 @@ export function toCSV(rows: Record<string, unknown>[], columns: string[]): strin
   }
   return lines.join("\n");
 }
+
+/** Formats a properties bag as a compact inline "key=value, key=value" string, e.g. for cross-dataset row summaries. */
+export function formatFieldsInline(properties: Record<string, unknown> | null | undefined): string {
+  if (!properties) return "(no fields)";
+  return Object.entries(properties)
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .map(([field, value]) => `${field}=${value}`)
+    .join(", ");
+}

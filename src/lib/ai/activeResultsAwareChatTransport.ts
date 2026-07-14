@@ -7,15 +7,16 @@ import {
   type ToolSet,
   type UIMessage,
 } from "ai";
-import { PIN_ATTACHMENT_NAME, formatPinAttachmentText, type PinAttachmentData } from "./pinAttachment";
+import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME, formatActiveResultsChangedText } from "./activeResultsSignal";
 
 /**
  * A DirectChatTransport lookalike (its agent/options fields are TS-private,
- * so subclassing can't reach them) that additionally converts the "pins"
- * data attachment into a text part before it reaches the model — AI SDK's
- * convertToModelMessages silently drops unhandled data-* parts otherwise.
+ * so subclassing can't reach them) that additionally converts the
+ * "activeResultsChanged" data attachment into a text part before it reaches
+ * the model — AI SDK's convertToModelMessages silently drops unhandled
+ * data-* parts otherwise.
  */
-export class PinAwareChatTransport<
+export class ActiveResultsAwareChatTransport<
   TOOLS extends ToolSet = ToolSet,
   UI_MESSAGE extends UIMessage<unknown, never, InferUITools<TOOLS>> = UIMessage<unknown, never, InferUITools<TOOLS>>,
 > implements ChatTransport<UI_MESSAGE>
@@ -33,7 +34,7 @@ export class PinAwareChatTransport<
     const modelMessages = await convertToModelMessages(validatedMessages, {
       tools: this.agent.tools as ToolSet,
       convertDataPart: (part) =>
-        part.type === `data-${PIN_ATTACHMENT_NAME}` ? { type: "text", text: formatPinAttachmentText(part.data as PinAttachmentData) } : undefined,
+        part.type === `data-${ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME}` ? { type: "text", text: formatActiveResultsChangedText() } : undefined,
     });
 
     const result = await this.agent.stream({ prompt: modelMessages, abortSignal });

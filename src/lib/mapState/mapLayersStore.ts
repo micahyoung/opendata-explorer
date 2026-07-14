@@ -1,4 +1,5 @@
 import type { FeatureCollection } from "geojson";
+import type { Map as MapLibreMap } from "maplibre-gl";
 import { create } from "zustand";
 import { computeBBox, type BBox } from "./geo";
 
@@ -18,6 +19,8 @@ interface MapLayersState {
   entries: Map<string, LayerEntry>;
   order: string[];
   pendingFlyTo: BBox | undefined;
+  mapInstance: MapLibreMap | null;
+  activeResultsChanged: boolean;
   addLayer: (entry: {
     id: string;
     datasetId: string;
@@ -27,12 +30,17 @@ interface MapLayersState {
   }) => void;
   activateLayer: (id: string) => void;
   clearFlyTo: () => void;
+  setMapInstance: (map: MapLibreMap | null) => void;
+  markActiveResultsChanged: () => void;
+  clearActiveResultsChanged: () => void;
 }
 
 export const useMapLayersStore = create<MapLayersState>((set, get) => ({
   entries: new Map(),
   order: [],
   pendingFlyTo: undefined,
+  mapInstance: null,
+  activeResultsChanged: false,
   addLayer: (entry) =>
     set((state) => {
       const entries = new Map(state.entries);
@@ -56,15 +64,19 @@ export const useMapLayersStore = create<MapLayersState>((set, get) => ({
         entries,
         order,
         pendingFlyTo: entries.get(entry.id)?.bbox,
+        activeResultsChanged: true,
       };
     }),
   activateLayer: (id) => {
     const state = get();
     const entry = state.entries.get(id);
     if (!entry) return;
-    set({ pendingFlyTo: entry.bbox });
+    set({ pendingFlyTo: entry.bbox, activeResultsChanged: true });
   },
   clearFlyTo: () => set({ pendingFlyTo: undefined }),
+  setMapInstance: (map) => set({ mapInstance: map }),
+  markActiveResultsChanged: () => set({ activeResultsChanged: true }),
+  clearActiveResultsChanged: () => set({ activeResultsChanged: false }),
 }));
 
 export function selectVisibleLayers(state: MapLayersState): LayerEntry[] {

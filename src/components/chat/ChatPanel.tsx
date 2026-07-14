@@ -7,9 +7,9 @@ import {
   useComposerRuntime,
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
+import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME } from "../../lib/ai/activeResultsSignal";
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
-import { buildPinAttachmentData, PIN_ATTACHMENT_NAME } from "../../lib/ai/pinAttachment";
-import { usePinnedPointsStore } from "../../lib/mapState/pinnedPointsStore";
+import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
 import { datasets } from "../../config/datasets";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
@@ -20,10 +20,10 @@ const MarkdownText = () => <MarkdownTextPrimitive />;
 const SUGGESTION_COUNT = 4;
 
 /**
- * Both submission paths take full manual control (add the pin attachment,
- * then send) rather than letting the library's own send fire: the form's
- * internal handler (Enter key, via requestSubmit) is skipped once onSubmit
- * calls preventDefault, per Radix's composeEventHandlers — but
+ * Both submission paths take full manual control (add the change-signal
+ * attachment, then send) rather than letting the library's own send fire:
+ * the form's internal handler (Enter key, via requestSubmit) is skipped once
+ * onSubmit calls preventDefault, per Radix's composeEventHandlers — but
  * ComposerPrimitive.Send fires its own send() straight from onClick
  * (independent of form submit), so it needs the same preventDefault +
  * manual-send treatment or it would send before the attachment is added.
@@ -31,26 +31,27 @@ const SUGGESTION_COUNT = 4;
 function Composer() {
   const composerRuntime = useComposerRuntime();
 
-  const sendWithPins = () => {
-    const { pins } = usePinnedPointsStore.getState();
-    if (pins.size > 0) {
+  const handleSend = () => {
+    const { activeResultsChanged, clearActiveResultsChanged } = useMapLayersStore.getState();
+    if (activeResultsChanged) {
       composerRuntime.addAttachment({
         type: "data",
-        name: PIN_ATTACHMENT_NAME,
-        content: [{ type: "data", name: PIN_ATTACHMENT_NAME, data: buildPinAttachmentData([...pins.values()]) }],
+        name: ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME,
+        content: [{ type: "data", name: ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME, data: {} }],
       });
     }
+    clearActiveResultsChanged();
     composerRuntime.send();
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    sendWithPins();
+    handleSend();
   };
 
   const handleSendClick = (e: MouseEvent) => {
     e.preventDefault();
-    sendWithPins();
+    handleSend();
   };
 
   return (

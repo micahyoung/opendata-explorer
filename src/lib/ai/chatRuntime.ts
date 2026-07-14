@@ -3,7 +3,7 @@ import { Experimental_Agent as ToolLoopAgent, stepCountIs, wrapLanguageModel } f
 import { useChatRuntime } from "@assistant-ui/react-ai-sdk";
 import { useCredentials } from "../credentials/useCredentials";
 import { useOpenAIClient } from "./openaiClient";
-import { PinAwareChatTransport } from "./pinAwareChatTransport";
+import { ActiveResultsAwareChatTransport } from "./activeResultsAwareChatTransport";
 import { reasoningEffortMiddleware } from "./reasoningEffortMiddleware";
 import { buildSystemPrompt } from "./systemPrompt";
 import { tools } from "./tools";
@@ -12,8 +12,9 @@ const MAX_AGENT_STEPS = 8;
 
 /**
  * Wires assistant-ui's chat runtime directly to an in-browser agent (no
- * server route) via PinAwareChatTransport, so the whole request/response/tool
- * loop happens client-side against the user's BYO-LLM endpoint.
+ * server route) via ActiveResultsAwareChatTransport, so the whole
+ * request/response/tool loop happens client-side against the user's BYO-LLM
+ * endpoint.
  */
 export function useOpenDataChatRuntime() {
   const client = useOpenAIClient();
@@ -37,7 +38,7 @@ export function useOpenDataChatRuntime() {
       stopWhen: stepCountIs(MAX_AGENT_STEPS),
     });
 
-    return new PinAwareChatTransport({ agent });
+    return new ActiveResultsAwareChatTransport({ agent });
   }, [client, model]);
 
   return useChatRuntime({ transport });

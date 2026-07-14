@@ -45,6 +45,10 @@ export function MapShell() {
     clearFlyTo();
   }, [pendingFlyTo, clearFlyTo]);
 
+  useEffect(() => {
+    return () => useMapLayersStore.getState().setMapInstance(null);
+  }, []);
+
   const infoFromEvent = (e: MapLayerMouseEvent): { info: HoverInfo; key: string } | undefined => {
     const feature = e.features?.[0];
     const entry = feature && layerIdToEntry.get(feature.layer.id);
@@ -89,6 +93,8 @@ export function MapShell() {
         style={{ width: "100%", height: "100%" }}
         interactiveLayerIds={interactiveLayerIds.length > 0 ? interactiveLayerIds : undefined}
         cursor={hoverInfo ? "pointer" : "grab"}
+        onLoad={(e) => useMapLayersStore.getState().setMapInstance(e.target)}
+        onMoveEnd={() => useMapLayersStore.getState().markActiveResultsChanged()}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setHoverInfo(undefined)}
         onClick={handleClick}

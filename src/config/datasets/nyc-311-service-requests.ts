@@ -5,7 +5,7 @@ const definition: DatasetDefinition = {
   backend: "socrata",
   id: "erm2-nwe9",
   domain: SOCRATA_DOMAIN,
-  name: "311 Service Requests",
+  name: "NYC 311 Service Requests",
   description:
     "NYC 311 service requests from 2010 to present. Complaints and requests made by residents to city agencies, including type, location, and status.",
   geo: { mode: "native", field: "location" },

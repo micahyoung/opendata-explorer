@@ -3,7 +3,7 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 const definition: DatasetDefinition = {
   backend: "socrata",
   id: "tkzw-k3nq",
-  domain: "data.sfgov.org",
+  domain: "data.sf.gov",
   name: "SF Street Tree List",
   description:
     "A list of street trees maintained by DPW and other agencies/entities in San Francisco, including species, planting date, trunk diameter, and location.",

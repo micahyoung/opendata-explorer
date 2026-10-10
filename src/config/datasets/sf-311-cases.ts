@@ -3,7 +3,7 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 const definition: DatasetDefinition = {
   backend: "socrata",
   id: "vw6y-z8j6",
-  domain: "data.sfgov.org",
+  domain: "data.sf.gov",
   name: "SF 311 Cases",
   description:
     "San Francisco 311 cases, including street/sidewalk cleaning, graffiti, parking enforcement, encampments, and other non-emergency requests, with category, responsible agency, status, and location.",

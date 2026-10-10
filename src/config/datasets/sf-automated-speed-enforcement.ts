@@ -3,7 +3,7 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 const definition: DatasetDefinition = {
   backend: "socrata",
   id: "d5uh-bk84",
-  domain: "data.sfgov.org",
+  domain: "data.sf.gov",
   name: "SF Automated Speed Enforcement Citations",
   description:
     "Daily counts of warnings and citations issued by SFMTA's Automated Speed Enforcement cameras — California's first city speed-camera pilot, authorized under state law (AB 645) and launched in 2025. Each row is one camera-day count, not an individual violation record, and doesn't capture every speeding vehicle (e.g. unreadable plates, staffing gaps).",

@@ -3,66 +3,69 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 const definition: DatasetDefinition = {
   backend: "socrata",
   id: "tkzw-k3nq",
-  domain: "data.sfgov.org",
+  domain: "data.sf.gov",
   name: "SF Street Tree List",
   description:
     "A list of street trees maintained by DPW and other agencies/entities in San Francisco, including species, planting date, trunk diameter, and location.",
-  geo: { mode: "native", field: "location" },
+  geo: { mode: "latlon", latField: "latitude", lonField: "longitude" },
   mapColor: "#1f4e8c",
-  categoryField: "qspecies",
+  categoryField: "species",
   fields: [
-    { name: "treeid", type: "text", description: "Unique identifier for the tree" },
-    { name: "qlegalstatus", type: "text", description: "Legal status, e.g. 'Permitted Site', 'Landmark tree'", facetable: true },
-    { name: "qspecies", type: "text", description: "Species in 'Latin :: Common' format, e.g. 'Platanus x hispanica :: Sycamore: London Plane' (match with LIKE against the common-name portion)", facetable: true },
-    { name: "qaddress", type: "text", description: "Street address nearest the tree" },
+    { name: "treeid", type: "number", description: "Unique identifier for the tree" },
+    { name: "legalstatus", type: "text", description: "Legal status, e.g. 'DPW Maintained', 'Significant Tree', 'Landmark tree', 'Permitted Site', 'Private', 'Undocumented'", facetable: true },
+    { name: "species", type: "text", description: "Species in 'Latin :: Common' format, e.g. 'Platanus x hispanica :: Sycamore: London Plane' (match with LIKE against the common-name portion)", facetable: true },
+    { name: "description", type: "text", description: "Address of the tree, with tree number at that address, e.g. '427 33rd Ave | Tree 1'" },
     { name: "planttype", type: "text", description: "'Tree' or 'Landscaping'", facetable: true },
-    { name: "qcaretaker", type: "text", description: "Agency/entity responsible for maintenance, e.g. 'DPW', 'Private', 'SFUSD', 'Port', 'Rec-Park', 'PUC', 'MTA'", facetable: true },
-    { name: "plantdate", type: "floating_timestamp", description: "Date the tree was planted" },
-    { name: "dbh", type: "number", description: "Trunk diameter in inches, measured at breast height" },
+    { name: "planter", type: "text", description: "Agency/entity that planted the tree, e.g. 'Private', 'DPW', 'FUF', 'SFUSD', 'Rec/Park', 'Port', 'MTA' (blank for many records)", facetable: true },
+    { name: "waterresponsibility", type: "text", description: "Agency/entity responsible for watering, e.g. 'Private', 'DPW', 'FUF', 'Clean City' (blank for many records)", facetable: true },
+    { name: "planteddate", type: "text", description: "Date planted as 'YYYY-MM-DD' text (blank for most records); compare as a string, e.g. planteddate > '2020-01-01'" },
+    { name: "mapdbh", type: "text", description: "Trunk diameter in inches at breast height, stored as text; cast to compare numerically, e.g. mapdbh::number > 24" },
+    { name: "onstreet", type: "text", description: "Street name where the tree is located" },
+    { name: "analysis_neighborhood", type: "text", description: "Analysis neighborhood, e.g. 'Inner Sunset'", facetable: true },
+    { name: "zip_code", type: "text", description: "Zip code where the tree is located" },
     { name: "latitude", type: "number", description: "Latitude of the tree location" },
     { name: "longitude", type: "number", description: "Longitude of the tree location" },
-    { name: "location", type: "point", description: "Point geometry of the tree location, used for map rendering" },
   ],
   exemplars: [
     {
       question: "Street trees in SF maintained by DPW",
       soql: {
-        where: "qcaretaker = 'DPW'",
+        where: "legalstatus = 'DPW Maintained'",
         limit: 1000,
       },
     },
     {
       question: "Trees planted in SF since 2020",
       soql: {
-        where: "plantdate > '2020-01-01T00:00:00'",
+        where: "planteddate > '2020-01-01'",
         limit: 1000,
       },
     },
     {
       question: "London Plane trees in SF",
       soql: {
-        where: "qspecies like '%London Plane%'",
+        where: "species like '%London Plane%'",
         limit: 1000,
       },
     },
     {
       question: "Landmark trees in SF",
       soql: {
-        where: "qlegalstatus = 'Landmark tree'",
+        where: "legalstatus = 'Landmark tree'",
         limit: 1000,
       },
     },
     {
       question: "London Plane trees near Golden Gate Park in SF",
       soql: {
-        where: "qspecies like '%London Plane%' AND within_circle(location, 37.7694, -122.4862, 1500)",
+        where: "species like '%London Plane%' AND latitude between 37.7559 and 37.7829 AND longitude between -122.5032 and -122.4692",
         limit: 1000,
       },
     },
     {
-      question: "Large privately-maintained trees in SF",
+      question: "Large privately-planted trees in SF",
       soql: {
-        where: "qcaretaker = 'Private' AND dbh > 24",
+        where: "planter = 'Private' AND mapdbh::number > 24",
         limit: 1000,
       },
     },

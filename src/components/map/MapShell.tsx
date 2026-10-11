@@ -1,7 +1,9 @@
 import type { Point } from "geojson";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MapGL, { type MapLayerMouseEvent, type MapRef } from "react-map-gl/maplibre";
+import { setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useShallow } from "zustand/react/shallow";
 import { coordinateKey } from "../../lib/mapState/geo";
 import { selectVisibleLayers, useMapLayersStore } from "../../lib/mapState/mapLayersStore";
@@ -11,6 +13,9 @@ import { DataLayer, STACK_COUNT_PROPERTY } from "./DataLayer";
 import { HoverPopup, type HoverInfo } from "./HoverPopup";
 import { MapLegend } from "./MapLegend";
 import { INITIAL_VIEW_STATE, MAP_STYLE_URL } from "./mapStyle";
+
+// maplibre 6 looks for its worker next to its own chunk, which Vite bundles away, so point it at an emitted copy.
+setWorkerUrl(maplibreWorkerUrl);
 
 export function MapShell() {
   const mapRef = useRef<MapRef>(null);

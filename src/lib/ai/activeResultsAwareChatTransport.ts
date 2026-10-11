@@ -21,9 +21,9 @@ export class ActiveResultsAwareChatTransport<
   UI_MESSAGE extends UIMessage<unknown, never, InferUITools<TOOLS>> = UIMessage<unknown, never, InferUITools<TOOLS>>,
 > implements ChatTransport<UI_MESSAGE>
 {
-  private readonly agent: Agent<never, TOOLS, never>;
+  private readonly agent: Agent<never, TOOLS>;
 
-  constructor({ agent }: { agent: Agent<never, TOOLS, never> }) {
+  constructor({ agent }: { agent: Agent<never, TOOLS> }) {
     this.agent = agent;
   }
 

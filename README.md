@@ -61,6 +61,7 @@ npm run build     # typecheck + production build
 npm run lint      # oxlint
 npm test          # unit tests (offline)
 npm run test:live # exemplar live-data regression suite (hits real Socrata/ArcGIS/CKAN endpoints)
+npm run eval      # on-device model evals; needs a WebGPU browser pointed at it (see below)
 ```
 
 ### Testing from another machine on your LAN
@@ -71,6 +72,16 @@ npm run test:live # exemplar live-data regression suite (hits real Socrata/ArcGI
 - **The model cache is per-origin.** The ~5.5 GB cache belongs to the exact origin (scheme, host and port), so changing the hostname or port means downloading the model again.
 
 `tests/exemplars.live.test.ts` (`npm run test:live`, run on a schedule by `.github/workflows/live-tests.yml` and kept out of `npm test` so upstream outages don't block CI) runs every hand-written example query from `src/config/datasets/*.ts` against its live backend and asserts each returns at least one feature. It's a smoke test, not a snapshot test — it catches upstream dataset/column renames, not content regressions.
+
+### Evaluating the on-device model
+
+`npm run eval` runs the cases in `evals/*.eval.ts` against the real on-device model, so they need a WebGPU browser with the model cached; they are not part of `npm test` or CI. Each case builds the exact messages the agent loop sends (`evals/harness.ts` reuses `toQwenMessages`, `buildSystemPrompt` and the app's tools), calls `engineClient.generate`, and classifies the output as plain text or a tool call. Decoding is greedy, so a case is repeatable. `evals/summaryAfterResult.eval.ts` is the first: after a successful fetch the model should answer in text with the result count (vision.md: Grounded Result Summaries), and it records the loop where it repeats the call instead. A case marked `it.fails` documents behaviour that is known to fail; it turns red when the model starts passing, which is the cue to update it.
+
+1. Stop `dev:lan`. The eval server takes over port 5173 so the page has the same origin as `dev:lan`, which already has the secure-context flag and the cached model (see above). It uses the Vitest `preview` provider, so it opens no browser itself (`BROWSER=none`).
+2. Run `npm run eval` and copy the `Browser runner started at …` URL it prints. It includes a per-run `sessionId`.
+3. On the GPU machine, open that URL with the LAN hostname in place of `localhost`, for example `http://vini.local:5173/__vitest_test__/?sessionId=…`, and keep the tab visible; Chrome stops painting hidden tabs. Results show in the Vitest UI, in the terminal, in `evals/results/latest.json`, and as a plain log in `#eval-log` on that page.
+
+Each case takes about a minute (a changed prefix means the KV cache is rebuilt), so expect a few minutes for the suite.
 
 ## Adding a dataset
 

@@ -15,6 +15,8 @@ export interface CkanQuerySuccess {
   where?: string;
   facets: FieldFacet[];
   resultSetId: string;
+  /** Tells the model the rows are already drawn on the map, so it does not fetch them again. */
+  displayedOnMap: true;
 }
 
 export interface CkanQueryFailure {

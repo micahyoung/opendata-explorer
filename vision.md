@@ -91,6 +91,7 @@ A static, client-rendered SPA with no server runtime and no build-time secrets. 
 * **Hardware Requirement:** The on-device model needs WebGPU with `shader-f16` and several GB of GPU memory. Browsers or devices without them get a clear message in the chat rail and a working map, not a fallback to a remote model.
 * **Tool-Calling via Qwen's Native Format:** The model emits Qwen's XML tool-call format, parsed into SDK tool calls by a lenient parser (`src/lib/ai/localModel/`). There is no JSON-mode fallback.
     * The agent's KV cache is reused across the steps of a conversation, so only newly added tokens are processed after the first step.
+    * How the model behaves at each step (tool call versus plain-text answer, summaries that match the result) is checked by on-device evals in `evals/`, which run in a WebGPU browser and are not part of CI. See README § Evaluating the on-device model.
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1.
     * MapLibre's native layer styling handles all rendering.
 * **Bounded Result History:** Result-set recall and row-level grounding are backed by a capped history, not unbounded retention.

@@ -4,7 +4,7 @@ const definition: DatasetDefinition = {
   backend: "arcgis",
   id: "cincinnati-countywide-schools",
   featureServerUrl:
-    "https://services.arcgis.com/JyZag7oO4NteHGiq/arcgis/rest/services/Open_Data/FeatureServer/24",
+    "https://services.arcgis.com/JyZag7oO4NteHGiq/arcgis/rest/services/Open_Data_Feature_Collection/FeatureServer/20",
   name: "Cincinnati Countywide School Locations",
   description:
     "Countywide public and private school locations across Cincinnati and Hamilton County, including school type, district, and grade information.",

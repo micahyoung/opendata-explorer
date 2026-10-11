@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "./proxy_bootstrap.mjs";
 import { parseArgs } from "node:util";
 
 const { values } = parseArgs({

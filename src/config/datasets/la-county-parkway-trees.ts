@@ -58,13 +58,13 @@ const definition: DatasetDefinition = {
       query: { where: "COMMON_editable like '%PALM%' AND Status = 'Active'" },
     },
     {
-      question: "Trees in the Downtown LA area",
+      question: "Trees in East Los Angeles",
       query: {
         where: "Status = 'Active'",
-        minLat: 34.035,
-        maxLat: 34.055,
-        minLon: -118.255,
-        maxLon: -118.235,
+        minLat: 34.01,
+        maxLat: 34.05,
+        minLon: -118.19,
+        maxLon: -118.14,
       },
     },
   ],

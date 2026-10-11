@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { datasets } from "../../config/datasets";
-import { downloadSessionLog, useSessionLog } from "../../lib/ai/localModel/sessionLog";
+import { countSteps, downloadSessionLog, useSessionLog } from "../../lib/ai/localModel/sessionLog";
 import { useSocrataTokens } from "../../lib/settings/socrataTokens";
 
 const socrataDatasets = datasets.filter((d) => d.backend === "socrata");
@@ -92,7 +92,7 @@ function TokenForm({ onDone }: { onDone: () => void }) {
 }
 
 function SessionLog() {
-  const stepCount = useSessionLog((s) => s.steps.length);
+  const stepCount = useSessionLog((s) => countSteps(s.events));
   return (
     <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border, #ddd)" }}>
       <span className="field-label">Session log</span>

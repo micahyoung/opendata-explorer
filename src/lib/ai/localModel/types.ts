@@ -17,15 +17,9 @@ export interface StepTrace {
   ms: number;
   /** Why the KV cache was discarded and the whole prompt re-prefilled; absent when the cache was extended. */
   coldReason?: string;
-  thinking: boolean;
-  maxTokens: number;
-  /** The messages the engine was handed. */
-  messages: ChatMessage[];
-  /** The full rendered ChatML prompt: what the model's context holds after prefill. */
-  promptText: string;
-  /** The part of `promptText` actually tokenized and prefilled this step (all of it when cold). */
-  fedText: string;
+  /** Tokens in the full prompt after prefill. */
   promptTokens: number;
+  /** Tokens served from the KV cache; the rest (`fedTokens`) were prefilled this step. */
   reusedTokens: number;
   fedTokens: number;
   /** Decoded generation with special tokens, before they are stripped. */

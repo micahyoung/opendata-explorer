@@ -155,6 +155,7 @@ export const fetchSocrataDataTool = tool({
         featureCount: featureCollection.features.length,
         facets,
         resultSetId: toolCallId,
+        displayedOnMap: true as const,
       };
     } catch (err) {
       if (err instanceof SocrataHttpError) {
@@ -251,6 +252,7 @@ export const fetchArcGisDataTool = tool({
         featureCount: featureCollection.features.length,
         facets,
         resultSetId: toolCallId,
+        displayedOnMap: true as const,
       };
     } catch (err) {
       if (err instanceof ArcgisHttpError) {
@@ -330,6 +332,7 @@ export const fetchCkanDataTool = tool({
         featureCount: featureCollection.features.length,
         facets,
         resultSetId: toolCallId,
+        displayedOnMap: true as const,
       };
     } catch (err) {
       if (err instanceof CkanHttpError) {

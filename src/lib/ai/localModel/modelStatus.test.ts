@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODEL_DOWNLOAD_BYTES } from "../../../config/localModel";
+import { MODEL_DOWNLOAD_BYTES_FALLBACK } from "../../../config/localModel";
 import { checkCapability, type CapabilityEnv } from "./modelStatus";
 
 const adapter = (features: string[]) => ({ features: new Set(features) });
@@ -23,15 +23,24 @@ describe("checkCapability", () => {
   it("fails when the storage quota is too small for the download", async () => {
     const env: CapabilityEnv = {
       gpu: { requestAdapter: async () => adapter(["shader-f16"]) },
-      storage: { estimate: async () => ({ quota: MODEL_DOWNLOAD_BYTES / 2 }) },
+      storage: { estimate: async () => ({ quota: MODEL_DOWNLOAD_BYTES_FALLBACK / 2 }) },
     };
     expect(await checkCapability(env)).toMatchObject({ ok: false, reason: expect.stringContaining("storage") });
+  });
+
+  it("checks storage against the size it is given", async () => {
+    const env: CapabilityEnv = {
+      gpu: { requestAdapter: async () => adapter(["shader-f16"]) },
+      storage: { estimate: async () => ({ quota: 10e9 }) },
+    };
+    expect(await checkCapability(env, 5e9)).toEqual({ ok: true });
+    expect(await checkCapability(env, 20e9)).toMatchObject({ ok: false });
   });
 
   it("passes with shader-f16 and enough storage", async () => {
     const env: CapabilityEnv = {
       gpu: { requestAdapter: async () => adapter(["shader-f16"]) },
-      storage: { estimate: async () => ({ quota: MODEL_DOWNLOAD_BYTES * 3 }) },
+      storage: { estimate: async () => ({ quota: MODEL_DOWNLOAD_BYTES_FALLBACK * 3 }) },
     };
     expect(await checkCapability(env)).toEqual({ ok: true });
   });

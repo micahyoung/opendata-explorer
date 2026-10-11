@@ -1,8 +1,9 @@
 import type { ProgressInfo } from "@huggingface/transformers";
 import type { WorkerRequest, WorkerResponse } from "./engine.worker";
+import { fetchModelBytes } from "./modelSize";
 import { checkCapability, useModelStatus } from "./modelStatus";
 import type { GenerateRequest, GenerateResult, LocalEngine } from "./types";
-import { MODEL_DOWNLOAD_BYTES, MODEL_ID } from "../../../config/localModel";
+import { MODEL_ID } from "../../../config/localModel";
 
 let worker: Worker | undefined;
 let nextId = 1;
@@ -27,7 +28,7 @@ function recordProgress(info: ProgressInfo) {
     totalBytes += f.total;
   }
   // Once (nearly) all the weights are in, what remains is compiling them onto the GPU.
-  const downloaded = totalBytes >= MODEL_DOWNLOAD_BYTES * 0.9 && loadedBytes >= totalBytes;
+  const downloaded = loadedBytes >= status().expectedBytes * 0.99;
   status().set({ loadedBytes, totalBytes, ...(downloaded ? { phase: "initializing" as const } : {}) });
 }
 
@@ -89,7 +90,9 @@ export function startDownload(alreadyCached = false) {
 
 /** Run once at startup: checks WebGPU support, and loads straight away if the model is already cached (no download involved). */
 export async function initLocalModel() {
-  const capability = await checkCapability();
+  const expectedBytes = (await fetchModelBytes()) ?? status().expectedBytes;
+  status().set({ expectedBytes });
+  const capability = await checkCapability(undefined, expectedBytes);
   if (!capability.ok) {
     status().set({ phase: "unsupported", message: capability.reason });
     return;

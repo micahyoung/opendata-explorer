@@ -11,8 +11,11 @@ export const MODEL_DTYPE = {
   decoder_model_merged: "fp16",
 } as const;
 
-/** Approximate bytes downloaded for MODEL_DTYPE (decoder + embeddings + vision encoder), for the UI and the storage check. */
-export const MODEL_DOWNLOAD_BYTES = 4.8e9;
+/**
+ * Download size shown and checked against storage when Hugging Face can't be asked (see fetchModelBytes). Measured for the fp16
+ * MODEL_DTYPE (decoder + embeddings + vision encoder); update it if MODEL_DTYPE changes.
+ */
+export const MODEL_DOWNLOAD_BYTES_FALLBACK = 5.45e9;
 
 /** Upper bound on tokens generated per agent step. Tool calls with long id arrays were truncated at 400. */
 export const MAX_OUTPUT_TOKENS = 1024;

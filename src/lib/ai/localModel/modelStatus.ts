@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { MODEL_DOWNLOAD_BYTES } from "../../../config/localModel";
+import { MODEL_DOWNLOAD_BYTES_FALLBACK } from "../../../config/localModel";
 
 export type ModelPhase = "checking" | "unsupported" | "idle" | "downloading" | "initializing" | "ready" | "error";
 
@@ -16,7 +16,10 @@ export interface CapabilityEnv {
 }
 
 /** Can this browser run the model? Needs WebGPU with shader-f16 (fp16 weights) and room to cache the download. */
-export async function checkCapability(env: CapabilityEnv = navigator as unknown as CapabilityEnv): Promise<Capability> {
+export async function checkCapability(
+  env: CapabilityEnv = navigator as unknown as CapabilityEnv,
+  requiredBytes = MODEL_DOWNLOAD_BYTES_FALLBACK,
+): Promise<Capability> {
   if (!env.gpu) return { ok: false, reason: "This browser has no WebGPU support. Use a recent Chrome or Edge on a desktop." };
   const adapter = await env.gpu.requestAdapter().catch(() => null);
   if (!adapter) return { ok: false, reason: "No WebGPU adapter is available on this device." };
@@ -24,7 +27,7 @@ export async function checkCapability(env: CapabilityEnv = navigator as unknown 
     return { ok: false, reason: "This GPU does not support 16-bit shaders (shader-f16), which the model needs." };
   }
   const quota = (await env.storage?.estimate().catch(() => undefined))?.quota;
-  if (quota !== undefined && quota < MODEL_DOWNLOAD_BYTES) {
+  if (quota !== undefined && quota < requiredBytes) {
     return { ok: false, reason: "This browser does not have enough storage available to cache the model." };
   }
   return { ok: true };
@@ -36,6 +39,8 @@ interface ModelStatusState {
   message: string | undefined;
   loadedBytes: number;
   totalBytes: number;
+  /** Size of the whole download: asked of Hugging Face at startup, the static fallback until (or unless) that answers. */
+  expectedBytes: number;
   set: (patch: Partial<Omit<ModelStatusState, "set">>) => void;
 }
 
@@ -44,5 +49,6 @@ export const useModelStatus = create<ModelStatusState>((set) => ({
   message: undefined,
   loadedBytes: 0,
   totalBytes: 0,
+  expectedBytes: MODEL_DOWNLOAD_BYTES_FALLBACK,
   set: (patch) => set(patch),
 }));

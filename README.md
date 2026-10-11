@@ -35,7 +35,7 @@ The assistant is [`onnx-community/Qwen3.5-2B-ONNX-OPT`](https://huggingface.co/o
 Requirements:
 
 - A desktop Chromium browser (Chrome or Edge) with **WebGPU** and the **`shader-f16`** feature. The chat rail runs a capability check and says what is missing.
-- A **~4.8 GB one-time download** (fp16 weights), cached by the browser. It only starts when you press **Download model**; on later visits a cached model loads automatically.
+- A **~5.5 GB one-time download** (fp16 weights), cached by the browser. It only starts when you press **Download model**; on later visits a cached model loads automatically.
 - Roughly 5 GB or more of free GPU memory.
 
 Known limits: the first message of a conversation takes about 30–40 seconds to process (later steps reuse the model's KV cache and take a few seconds); replies appear when a step finishes rather than streaming; decoding is greedy. Quantized (smaller) weights were measured to pick wrong datasets, so `fp16` is used until a better quantization is validated — the precision is one constant in [`src/config/localModel.ts`](src/config/localModel.ts). The model's runtime (ONNX Runtime WASM files) is loaded from a CDN.

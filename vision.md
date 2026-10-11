@@ -26,7 +26,7 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 * **Zero-Backend Execution:** The application is a static/client-side React app.
     * There is no proprietary backend server mediating API requests.
 * **On-Device LLM:** The model runs in the user's browser on their own GPU (WebGPU, via Transformers.js in a Web Worker); there is no LLM endpoint, API key, or provider.
-    * This gives maximum privacy (prompts never leave the device) and zero hosting or inference cost. The trade-off is a large one-time download (~4.8 GB, only on explicit user request) and a hardware requirement (WebGPU with `shader-f16`, several GB of GPU memory).
+    * This gives maximum privacy (prompts never leave the device) and zero hosting or inference cost. The trade-off is a large one-time download (~5.5 GB, only on explicit user request) and a hardware requirement (WebGPU with `shader-f16`, several GB of GPU memory).
     * A single model is supported; there is no model picker.
 * **BYO-Socrata Token:** Users will provide their own Socrata App Token(s) to bypass unauthenticated IP rate limits, shifting all data API quotas to the user.
     * Since tokens are issued per Socrata portal, a user querying datasets from multiple portals brings a token for each one they want elevated limits on.

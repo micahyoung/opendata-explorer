@@ -11,7 +11,6 @@ import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME } from "../../lib/ai/activeResul
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
 import { datasets } from "../../config/datasets";
-import { MODEL_DOWNLOAD_BYTES } from "../../config/localModel";
 import { startDownload } from "../../lib/ai/localModel/engineClient";
 import { useModelStatus } from "../../lib/ai/localModel/modelStatus";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
@@ -87,6 +86,7 @@ function ModelSetup() {
   const message = useModelStatus((s) => s.message);
   const loadedBytes = useModelStatus((s) => s.loadedBytes);
   const totalBytes = useModelStatus((s) => s.totalBytes);
+  const expectedBytes = useModelStatus((s) => s.expectedBytes);
   const muted = { color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: "0 0 10px" } as const;
 
   return (
@@ -100,7 +100,7 @@ function ModelSetup() {
         <>
           {phase === "error" && <p style={{ ...muted, color: "var(--alert-orange-dark)" }}>Couldn't load the model: {message}</p>}
           <p style={muted}>
-            The assistant runs entirely in your browser. Download Qwen3.5 2B (~{formatGB(MODEL_DOWNLOAD_BYTES)}, cached for next
+            The assistant runs entirely in your browser. Download Qwen3.5 2B (~{formatGB(expectedBytes)}, cached for next
             time) to start; your questions never leave this device.
           </p>
           <button className="btn btn-primary" onClick={() => startDownload()} style={{ width: "100%" }}>
@@ -111,10 +111,9 @@ function ModelSetup() {
       {phase === "downloading" && (
         <>
           <p style={muted}>
-            Downloading… {formatGB(loadedBytes)}
-            {totalBytes > 0 ? ` of ${formatGB(totalBytes)}` : ""}
+            Downloading… {formatGB(loadedBytes)} of {formatGB(Math.max(totalBytes, expectedBytes))}
           </p>
-          <progress value={loadedBytes} max={totalBytes || undefined} style={{ width: "100%" }} />
+          <progress value={loadedBytes} max={Math.max(totalBytes, expectedBytes)} style={{ width: "100%" }} />
         </>
       )}
       {phase === "initializing" && <p style={muted}>Loading the model onto your GPU… this can take a minute.</p>}

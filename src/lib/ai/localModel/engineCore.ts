@@ -69,6 +69,7 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
   let cached: { cache: KvCache; text: string; ids: number[] } | undefined;
   let gens: Generation[] = [];
   let busy = false;
+  let stepNo = 0;
 
   async function reset() {
     const old = cached;
@@ -82,10 +83,14 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
     busy = true;
     try {
       signal?.throwIfAborted();
+      const startedAt = new Date();
       const plan = planPrompt(req.messages, gens, cached?.text, req.thinking);
       if (plan.cold) await reset();
+      if (plan.cold === "new conversation") stepNo = 0;
       const warm = cached !== undefined;
-      const inputIds = warm ? [...cached!.ids, ...encode(plan.text.slice(cached!.text.length))] : encode(plan.text);
+      const reusedTokens = warm ? cached!.ids.length : 0;
+      const fedText = warm ? plan.text.slice(cached!.text.length) : plan.text;
+      const inputIds = warm ? [...cached!.ids, ...encode(fedText)] : encode(plan.text);
 
       const stopping = new InterruptableStoppingCriteria();
       const onAbort = () => stopping.interrupt();
@@ -122,11 +127,29 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
       const header = plan.text.slice(plan.text.lastIndexOf("<|im_start|>assistant"));
       cached = { cache, text: plan.text + raw, ids: sequence };
       gens.push({ header, raw });
+      const finish = generated.at(-1) === imEndId ? "stop" : "length";
       return {
+        trace: {
+          step: ++stepNo,
+          startedAt: startedAt.toISOString(),
+          ms: Date.now() - startedAt.getTime(),
+          ...(plan.cold ? { coldReason: plan.cold } : {}),
+          thinking: req.thinking,
+          maxTokens: req.maxTokens,
+          messages: req.messages,
+          promptText: plan.text,
+          fedText,
+          promptTokens: inputIds.length,
+          reusedTokens,
+          fedTokens: inputIds.length - reusedTokens,
+          rawOutput: raw,
+          completionTokens: generated.length,
+          finish,
+        },
         raw: raw.replace(/<\|im_end\|>|<\|endoftext\|>/g, ""),
         promptTokens: inputIds.length,
         completionTokens: generated.length,
-        finish: generated.at(-1) === imEndId ? "stop" : "length",
+        finish,
       };
     } finally {
       busy = false;

@@ -2,6 +2,7 @@ import type { ProgressInfo } from "@huggingface/transformers";
 import type { WorkerRequest, WorkerResponse } from "./engine.worker";
 import { fetchModelBytes } from "./modelSize";
 import { checkCapability, useModelStatus } from "./modelStatus";
+import { useSessionLog } from "./sessionLog";
 import type { GenerateRequest, GenerateResult, LocalEngine } from "./types";
 import { MODEL_ID } from "../../../config/localModel";
 
@@ -42,6 +43,7 @@ function onMessage(event: MessageEvent<WorkerResponse>) {
       status().set({ phase: "ready", message: undefined });
       return;
     case "result":
+      if (msg.result.trace) useSessionLog.getState().add(msg.result.trace);
       pending.get(msg.id)?.resolve(msg.result);
       pending.delete(msg.id);
       return;

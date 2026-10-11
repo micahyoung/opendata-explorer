@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { datasets } from "../../config/datasets";
+import { downloadSessionLog, useSessionLog } from "../../lib/ai/localModel/sessionLog";
 import { useSocrataTokens } from "../../lib/settings/socrataTokens";
 
 const socrataDatasets = datasets.filter((d) => d.backend === "socrata");
@@ -90,6 +91,21 @@ function TokenForm({ onDone }: { onDone: () => void }) {
   );
 }
 
+function SessionLog() {
+  const stepCount = useSessionLog((s) => s.steps.length);
+  return (
+    <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border, #ddd)" }}>
+      <span className="field-label">Session log</span>
+      <p className="field-hint" style={{ marginTop: 0 }}>
+        Contains your questions, the data sent to the model and its raw replies. Saved to your device only.
+      </p>
+      <button type="button" className="btn" style={{ width: "100%" }} disabled={stepCount === 0} onClick={downloadSessionLog}>
+        Download session log{stepCount > 0 ? ` (${stepCount} steps)` : ""}
+      </button>
+    </div>
+  );
+}
+
 export function SettingsPanel() {
   const [open, setOpen] = useState(false);
 
@@ -118,6 +134,7 @@ export function SettingsPanel() {
           }}
         >
           <TokenForm onDone={() => setOpen(false)} />
+          <SessionLog />
         </div>
       )}
     </div>

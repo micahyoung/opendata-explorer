@@ -7,7 +7,7 @@ import {
   useComposerRuntime,
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
-import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME } from "../../lib/ai/activeResultsSignal";
+import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME, shouldAttachActiveResultsNote } from "../../lib/ai/activeResultsSignal";
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
 import { datasets } from "../../config/datasets";
@@ -34,8 +34,8 @@ function Composer() {
   const composerRuntime = useComposerRuntime();
 
   const handleSend = () => {
-    const { activeResultsChanged, clearActiveResultsChanged } = useMapLayersStore.getState();
-    if (activeResultsChanged) {
+    const { activeResultsChanged, clearActiveResultsChanged, order } = useMapLayersStore.getState();
+    if (shouldAttachActiveResultsNote(activeResultsChanged, order.length)) {
       composerRuntime.addAttachment({
         type: "data",
         name: ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME,

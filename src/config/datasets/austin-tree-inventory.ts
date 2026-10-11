@@ -48,7 +48,8 @@ const definition: DatasetDefinition = {
     {
       question: "Large Southern Live Oaks in Austin",
       soql: {
-        where: "species like '%Live Oak%' AND diameter > 24",
+        select: "species, diameter, latitude, longtitude",
+        where: "species like '%Live Oak%' AND diameter > 30",
         limit: 1000,
       },
     },

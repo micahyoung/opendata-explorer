@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "d5uh-bk84",
+  id: "sf-automated-speed-enforcement",
+  resourceId: "d5uh-bk84",
   domain: "data.sf.gov",
   name: "SF Automated Speed Enforcement Citations",
   description:

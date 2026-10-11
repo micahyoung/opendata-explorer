@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "spqx-js37",
+  id: "chicago-red-light-camera-violations",
+  resourceId: "spqx-js37",
   domain: "data.cityofchicago.org",
   name: "Chicago Red Light Camera Violations",
   description:

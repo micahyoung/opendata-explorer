@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "quth-gb8e",
+  id: "oakland-311",
+  resourceId: "quth-gb8e",
   domain: "data.oaklandca.gov",
   name: "Oakland 311 Service Requests (OAK 311)",
   description:

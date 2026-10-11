@@ -3,7 +3,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "uvpi-gqnh",
+  id: "nyc-tree-census",
+  resourceId: "uvpi-gqnh",
   domain: SOCRATA_DOMAIN,
   name: "2015 Street Tree Census",
   description:

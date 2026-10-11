@@ -83,7 +83,8 @@ const socrataDatasetSchema = z
   .object({
     backend: z.literal("socrata"),
     ...baseDatasetShape,
-    id: z.string().describe("Socrata dataset (resource) ID, e.g. erm2-nwe9"),
+    id: z.string().describe("Readable slug the model uses to pick this dataset, e.g. nyc-311-service-requests; opaque IDs are not picked reliably"),
+    resourceId: z.string().describe("Socrata dataset (resource) ID used in the API URL, e.g. erm2-nwe9"),
     domain: z.string().describe("Socrata portal domain hosting this dataset, e.g. data.cityofnewyork.us"),
     geo: geoConfigSchema,
     exemplars: z.array(soqlExemplarSchema).min(1),

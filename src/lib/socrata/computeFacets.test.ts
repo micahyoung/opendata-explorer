@@ -6,7 +6,8 @@ import { computeFacets, formatFacetSummary } from "./computeFacets";
 function makeDataset(fields: DatasetDefinition["fields"]): DatasetDefinition {
   return {
     backend: "socrata",
-    id: "test-1234",
+    id: "test-dataset",
+    resourceId: "test-1234",
     domain: "data.example.com",
     name: "Test Dataset",
     description: "A dataset for tests",

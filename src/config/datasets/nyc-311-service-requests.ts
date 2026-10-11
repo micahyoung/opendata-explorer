@@ -3,7 +3,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "erm2-nwe9",
+  id: "nyc-311-service-requests",
+  resourceId: "erm2-nwe9",
   domain: SOCRATA_DOMAIN,
   name: "NYC 311 Service Requests",
   description:

@@ -8,7 +8,7 @@ import { MODEL_ID } from "../../../config/localModel";
 
 let worker: Worker | undefined;
 let nextId = 1;
-const pending = new Map<number, { resolve: (r: GenerateResult) => void; reject: (e: Error) => void }>();
+const pending = new Map<number, { req: GenerateRequest; resolve: (r: GenerateResult) => void; reject: (e: Error) => void }>();
 const files = new Map<string, { loaded: number; total: number }>();
 
 const status = () => useModelStatus.getState();
@@ -43,8 +43,11 @@ function onMessage(event: MessageEvent<WorkerResponse>) {
       status().set({ phase: "ready", message: undefined });
       return;
     case "result":
-      if (msg.result.trace) useSessionLog.getState().add(msg.result.trace);
-      pending.get(msg.id)?.resolve(msg.result);
+      {
+        const entry = pending.get(msg.id);
+        if (entry && msg.result.trace) useSessionLog.getState().add(entry.req, msg.result.trace);
+        entry?.resolve(msg.result);
+      }
       pending.delete(msg.id);
       return;
     case "error":
@@ -110,7 +113,7 @@ export const engineClient: LocalEngine = {
     if (signal?.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
     const id = nextId++;
     return new Promise<GenerateResult>((resolve, reject) => {
-      pending.set(id, { resolve, reject });
+      pending.set(id, { req, resolve, reject });
       signal?.addEventListener("abort", () => send({ type: "abort", id }), { once: true });
       send({ type: "generate", id, req });
     });

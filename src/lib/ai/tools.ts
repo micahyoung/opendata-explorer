@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { BACKEND_SYNTAX_GUIDE, datasetIds, getDataset } from "../../config/datasets";
-import { useCredentials } from "../credentials/useCredentials";
+import { useSocrataTokens } from "../settings/socrataTokens";
 import { useMapLayersStore } from "../mapState/mapLayersStore";
 import { buildArcgisUrl } from "../arcgis/buildArcgisUrl";
 import { fetchArcgis } from "../arcgis/fetchArcgis";
@@ -119,7 +119,7 @@ export const fetchSocrataDataTool = tool({
       };
     }
 
-    const appToken = useCredentials.getState().credentials?.socrataAppTokens?.[dataset.domain];
+    const appToken = useSocrataTokens.getState().tokens[dataset.domain];
     const url = buildSoqlUrl(dataset, params, appToken);
 
     try {

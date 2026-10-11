@@ -1,45 +1,36 @@
 import { useMemo } from "react";
-import { Experimental_Agent as ToolLoopAgent, stepCountIs, wrapLanguageModel } from "ai";
+import { Experimental_Agent as ToolLoopAgent, stepCountIs } from "ai";
 import { useChatRuntime } from "@assistant-ui/react-ai-sdk";
-import { useCredentials } from "../credentials/useCredentials";
-import { useOpenAIClient } from "./openaiClient";
+import { MAX_OUTPUT_TOKENS, MAX_TOOL_RESULT_CHARS, MODEL_ID } from "../../config/localModel";
 import { ActiveResultsAwareChatTransport } from "./activeResultsAwareChatTransport";
-import { reasoningEffortMiddleware } from "./reasoningEffortMiddleware";
+import { engineClient } from "./localModel/engineClient";
+import { createQwenLanguageModel } from "./localModel/qwenModel";
 import { buildSystemPrompt } from "./systemPrompt";
 import { tools } from "./tools";
 
 const MAX_AGENT_STEPS = 8;
 
 /**
- * Wires assistant-ui's chat runtime directly to an in-browser agent (no
- * server route) via ActiveResultsAwareChatTransport, so the whole
- * request/response/tool loop happens client-side against the user's BYO-LLM
- * endpoint.
+ * Wires assistant-ui's chat runtime directly to an in-browser agent (no server route) via ActiveResultsAwareChatTransport, so
+ * the whole request/response/tool loop happens client-side against the on-device model. The transport is created once and never
+ * changes; whether the model is loaded yet is the engine's concern (it rejects a step until then, and ChatPanel hides the
+ * composer until the model is ready).
  */
 export function useOpenDataChatRuntime() {
-  const client = useOpenAIClient();
-  const model = useCredentials((s) => s.credentials?.model);
-
   const transport = useMemo(() => {
-    if (!client || !model) return undefined;
-
-    // `.chat()` targets /v1/chat/completions — the interface every BYO-LLM
-    // target actually implements reliably (OpenAI, OpenRouter, llama-server/
-    // Ollama). `/v1/responses` was tried and reverted after llama-server's
-    // non-conformant SSE stream (reasoning event names don't match OpenAI's)
-    // broke tool-call recognition under this SDK's strict parser — see
-    // ggml-org/llama.cpp#20607. reasoningEffortMiddleware's provider-option
-    // keys map onto the same flat reasoning_effort/verbosity body fields
-    // here, so no middleware changes are needed.
     const agent = new ToolLoopAgent({
-      model: wrapLanguageModel({ model: client.chat(model), middleware: reasoningEffortMiddleware }),
+      model: createQwenLanguageModel({
+        engine: engineClient,
+        modelId: MODEL_ID,
+        maxTokens: MAX_OUTPUT_TOKENS,
+        maxToolResultChars: MAX_TOOL_RESULT_CHARS,
+      }),
       instructions: buildSystemPrompt(),
       tools,
       stopWhen: stepCountIs(MAX_AGENT_STEPS),
     });
-
     return new ActiveResultsAwareChatTransport({ agent });
-  }, [client, model]);
+  }, []);
 
   return useChatRuntime({ transport });
 }

@@ -1,41 +1,97 @@
-import { useEffect, useRef, useState } from "react";
-import { useCredentials } from "../../lib/credentials/useCredentials";
-import { usePendingUrlConfig } from "../../lib/credentials/pendingUrlConfig";
-import { encodeConfigParam } from "../../lib/credentials/urlConfigCodec";
-import type { Credentials } from "../../types/credentials";
-import { CredentialsForm } from "../onboarding/CredentialsForm";
+import { useState } from "react";
+import { datasets } from "../../config/datasets";
+import { useSocrataTokens } from "../../lib/settings/socrataTokens";
+
+const socrataDatasets = datasets.filter((d) => d.backend === "socrata");
+const socrataDomains = [...new Set(socrataDatasets.map((d) => d.domain))];
+
+function TokenForm({ onDone }: { onDone: () => void }) {
+  const saved = useSocrataTokens((s) => s.tokens);
+  const save = useSocrataTokens((s) => s.save);
+  const [tokens, setTokens] = useState<Record<string, string>>(saved);
+  const addedDomains = Object.keys(tokens);
+  const remainingDomains = socrataDomains.filter((d) => !addedDomains.includes(d));
+  const [domainToAdd, setDomainToAdd] = useState(remainingDomains[0] ?? "");
+  const selectedDomainToAdd = remainingDomains.includes(domainToAdd) ? domainToAdd : (remainingDomains[0] ?? "");
+
+  function removeToken(domain: string) {
+    setTokens((prev) => {
+      const next = { ...prev };
+      delete next[domain];
+      return next;
+    });
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        save(tokens);
+        onDone();
+      }}
+    >
+      <span className="field-label">Socrata app tokens (optional)</span>
+      <p className="field-hint" style={{ marginTop: 0 }}>
+        Only needed to raise rate limits on the Socrata domains you actually query. Stored in this browser only.
+      </p>
+
+      {addedDomains.map((domain) => {
+        const datasetNames = socrataDatasets
+          .filter((d) => d.domain === domain)
+          .map((d) => d.name)
+          .join(", ");
+        return (
+          <div key={domain} style={{ marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                className="field-input"
+                type="password"
+                autoComplete="off"
+                placeholder={`Token for ${domain}`}
+                value={tokens[domain] ?? ""}
+                onChange={(e) => setTokens((prev) => ({ ...prev, [domain]: e.target.value }))}
+                style={{ flex: 1 }}
+              />
+              <button type="button" className="btn" onClick={() => removeToken(domain)} aria-label={`Remove token for ${domain}`}>
+                Remove
+              </button>
+            </div>
+            <p className="field-hint">
+              {domain} — used by: {datasetNames}
+            </p>
+          </div>
+        );
+      })}
+
+      {remainingDomains.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <select
+            className="field-input"
+            value={selectedDomainToAdd}
+            onChange={(e) => setDomainToAdd(e.target.value)}
+            style={{ flex: 1 }}
+          >
+            {remainingDomains.map((domain) => (
+              <option key={domain} value={domain}>
+                {domain}
+              </option>
+            ))}
+          </select>
+          <button type="button" className="btn" onClick={() => setTokens((prev) => ({ ...prev, [selectedDomainToAdd]: "" }))}>
+            + Add
+          </button>
+        </div>
+      )}
+
+      <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
+        Save changes
+      </button>
+    </form>
+  );
+}
 
 export function SettingsPanel() {
-  const credentials = useCredentials((s) => s.credentials);
-  const save = useCredentials((s) => s.save);
-  const clear = useCredentials((s) => s.clear);
-  const pendingStatus = usePendingUrlConfig((s) => s.status);
-  const consumePendingConfig = usePendingUrlConfig((s) => s.consume);
-  const [pendingConfig, setPendingConfig] = useState<Credentials | undefined>(undefined);
-  const consumedRef = useRef(false);
   const [open, setOpen] = useState(false);
-  const [copyLabel, setCopyLabel] = useState("Copy config link");
-
-  useEffect(() => {
-    if (consumedRef.current || !credentials || pendingStatus !== "ready") return;
-    consumedRef.current = true;
-    const config = consumePendingConfig();
-    if (config) {
-      setPendingConfig(config);
-      setOpen(true);
-    }
-  }, [credentials, pendingStatus, consumePendingConfig]);
-
-  const formInitial = pendingConfig ?? credentials;
-
-  async function handleCopyLink() {
-    if (!credentials) return;
-    const encoded = await encodeConfigParam(credentials);
-    const url = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
-    navigator.clipboard.writeText(url);
-    setCopyLabel("Copied!");
-    setTimeout(() => setCopyLabel("Copy config link"), 1500);
-  }
 
   return (
     <div>
@@ -61,36 +117,7 @@ export function SettingsPanel() {
             overflowY: "auto",
           }}
         >
-          <CredentialsForm
-            key={pendingConfig ? "url-config" : "saved"}
-            initial={formInitial}
-            submitLabel="Save changes"
-            onSubmit={(c) => {
-              save(c);
-              setOpen(false);
-            }}
-          />
-          {credentials && (
-            <>
-              <button className="btn btn-ghost" onClick={handleCopyLink} style={{ width: "100%", marginTop: 8 }}>
-                {copyLabel}
-              </button>
-              <p className="field-hint">
-                This link contains your API key, lightly obfuscated and tied to this domain — it won't work if
-                pasted on another site. Still share it like a password.
-              </p>
-            </>
-          )}
-          <button
-            className="btn btn-danger"
-            onClick={() => {
-              clear();
-              setOpen(false);
-            }}
-            style={{ width: "100%", marginTop: 8 }}
-          >
-            Clear credentials
-          </button>
+          <TokenForm onDone={() => setOpen(false)} />
         </div>
       )}
     </div>

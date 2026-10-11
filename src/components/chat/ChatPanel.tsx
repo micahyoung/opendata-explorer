@@ -15,6 +15,7 @@ import { startDownload } from "../../lib/ai/localModel/engineClient";
 import { useModelStatus } from "../../lib/ai/localModel/modelStatus";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 import { ArcGisToolCallCard, CkanToolCallCard, ToolCallCard } from "./ToolCallCard";
 
 const MarkdownText = () => <MarkdownTextPrimitive />;
@@ -206,6 +207,7 @@ export function ChatPanel() {
                 ),
               }}
             />
+            <ThinkingIndicator />
           </ThreadPrimitive.Viewport>
           {ready ? <Composer /> : <ModelSetup />}
         </ThreadPrimitive.Root>

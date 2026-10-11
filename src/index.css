@@ -262,3 +262,55 @@ textarea {
   }
 }
 
+
+/* Status dot used on tool cards and the thinking row; pulses while work is pending. */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+}
+
+.status-dot--pending {
+  animation: status-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+.thinking-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: thinking-fade-in 0.2s ease-out both;
+}
+
+.thinking-hint {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+@keyframes thinking-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot--pending {
+    animation: none;
+  }
+  .thinking-row {
+    animation: none;
+  }
+}

@@ -25,39 +25,33 @@ To build a purely client-side, zero-backend "Conversational GIS" web application
 ### Technical Constraints & "Bring-Your-Own" Architecture
 * **Zero-Backend Execution:** The application is a static/client-side React app.
     * There is no proprietary backend server mediating API requests.
-* **BYO-LLM (OpenAI-Compatible):** Users must provide their own API endpoint and API key.
-    * This ensures compatibility with OpenAI, OpenRouter, and local models (e.g., `llama.cpp`) to support maximum privacy and zero hosting costs.
-* **Dynamic Model Discovery:** The model picker is a dropdown populated from the provider's `GET /v1/models`, not a free-text field.
+* **On-Device LLM:** The model runs in the user's browser on their own GPU (WebGPU, via Transformers.js in a Web Worker); there is no LLM endpoint, API key, or provider.
+    * This gives maximum privacy (prompts never leave the device) and zero hosting or inference cost. The trade-off is a large one-time download (~4.8 GB, only on explicit user request) and a hardware requirement (WebGPU with `shader-f16`, several GB of GPU memory).
+    * A single model is supported; there is no model picker.
 * **BYO-Socrata Token:** Users will provide their own Socrata App Token(s) to bypass unauthenticated IP rate limits, shifting all data API quotas to the user.
     * Since tokens are issued per Socrata portal, a user querying datasets from multiple portals brings a token for each one they want elevated limits on.
 * **Strict Browser Performance Safeguards:** Hard-coded row-count limits and aggressive timeouts must be strictly enforced on the client side before any backend request executes.
     * This prevents massive GeoJSON payloads from crashing the browser tab.
-* **Obfuscated (Not Encrypted) Local Credential Storage (Accepted Trade-off):** All BYO credentials (LLM API key, Socrata app tokens) are stored in the browser's `localStorage`, the app's only persistence layer, lightly obfuscated with AES-GCM keyed off the page's own hostname.
-    * The "Copy config link" URL param uses the same scheme.
-    * This is not a real security boundary — the "key" is derivable from the origin itself, so anyone with browser profile or extension access can trivially reproduce it — it just stops the stored value from being plaintext-grep-able.
-    * This is a deliberate consequence of the zero-backend architecture, not an oversight. Users whose threat model doesn't tolerate local access to their credentials are expected to use a scoped/limited key rather than a long-lived production credential.
+* **Plaintext Local Token Storage (Accepted Trade-off):** Socrata app tokens are stored in the browser's `localStorage` (the app's only persistence layer besides the model's cache) as plain text.
+    * App tokens only raise rate limits and are not account credentials; this is a deliberate consequence of the zero-backend architecture.
 
 ## 3. General Architecture & Stack
 
-A static, client-rendered SPA with no server runtime and no build-time secrets. Three open data query dialects (Socrata SoQL, Esri REST, CKAN DataStore) are fetched directly from the browser and rendered as WebGL map layers; LLM calls go straight from the browser to the user's configured OpenAI-compatible endpoint. See [README.md](README.md) for the specific libraries and packages this is built from.
+A static, client-rendered SPA with no server runtime and no build-time secrets. Three open data query dialects (Socrata SoQL, Esri REST, CKAN DataStore) are fetched directly from the browser and rendered as WebGL map layers; the LLM runs locally in the browser. See [README.md](README.md) for the specific libraries and packages this is built from.
 
 ## 4. Happy-Path User Flow
 
-**Step 1: Onboarding & Configuration (One-time)**
-* The user loads the static web app.
-* They are greeted by an onboarding modal explaining the BYOK (Bring Your Own Key) architecture.
-* The user selects a provider preset (e.g., "OpenAI", "OpenRouter", "Local (llama.cpp / Ollama)") which populates the Base URL.
-* The user enters their API Key and optional Socrata App Token(s), then picks a Model from a dropdown populated via the provider's `/v1/models`.
-* Credentials are saved to `localStorage`.
-* A saved configuration can also be shared as a single URL, letting a user reuse it on another device or hand it off without retyping.
-    * Since the link carries the API key and any Socrata tokens (obfuscated the same way as `localStorage`, not a real security boundary), generating one is always an explicit user action, never automatic.
+**Step 1: Model Setup (One-time)**
+* The user loads the static web app; the map is usable immediately.
+* The chat rail checks WebGPU support and, if supported, offers an explicit **Download model** button stating the size. Nothing is downloaded until it's pressed.
+* The weights are cached by the browser, so later visits load the model automatically. Optional Socrata App Token(s) can be added in Settings.
 
 **Step 2: Intent Expression & Dataset Discovery**
 * Instead of a blank chat box, the user can start from a clickable suggested question drawn from the curated catalog.
 * The user types a query into the `assistant-ui` chat: *"Show me noise complaints in Queens."*
 * The Vercel AI SDK packages the message alongside a curated, declarative system prompt naming every supported dataset (ID, name, and description) so the LLM can identify the right one.
     * The full field schema, worked query exemplars, and backend-specific query syntax for a given dataset are only pulled into context on demand, so the base prompt stays lightweight and backend-agnostic as the catalog of curated datasets grows.
-* The payload is sent directly from the browser to the user's configured LLM endpoint.
+* The prompt is handed to the on-device model; nothing is sent to a model provider.
 
 **Step 3: The Agentic Query Loop**
 * The LLM identifies the correct dataset and, if it hasn't already seen that dataset's schema this conversation, fetches it via a dedicated tool call before writing a query against it — that response also names which backend-specific fetch tool to call and how.
@@ -94,14 +88,9 @@ A static, client-rendered SPA with no server runtime and no build-time secrets. 
     * *Boundary:* merging is exact-coordinate only, never proximity-based clustering — nearby-but-distinct points always stay distinguishable.
 * **Location Grounding:** Named places are resolved to real coordinates by a dedicated geocoding step before the fetch (see *Grounded Location Resolution* in § 2 for the user-facing requirement this satisfies).
     * *Why:* this is the same tool-chaining pattern regardless of which dataset or backend is ultimately queried, so the skill is taught once rather than duplicated per dataset.
-* **CORS Restrictions:** Because there is no bundled relay/proxy, any BYO-LLM endpoint must accept direct browser CORS requests.
-    * *Scope:* a provider that blocks browser calls with no proxy option is out of scope, not a bug to fix here.
-    * *Docs obligation:* for local BYO-LLM users (e.g., `llama.cpp`), documentation must explicitly outline how to launch the local server with `--cors "*"` to prevent browser Mixed Content blocks.
-* **Tool-Calling Requirement:** Models without native OpenAI-style function/tool calling are out of scope for v1.
-    * There is no prompt-based JSON-parsing fallback for the query-generation loop. A model that can't call the fetch tool simply can't query data through this app.
+* **Hardware Requirement:** The on-device model needs WebGPU with `shader-f16` and several GB of GPU memory. Browsers or devices without them get a clear message in the chat rail and a working map, not a fallback to a remote model.
+* **Tool-Calling via Qwen's Native Format:** The model emits Qwen's XML tool-call format, parsed into SDK tool calls by a lenient parser (`src/lib/ai/localModel/`). There is no JSON-mode fallback.
+    * The agent's KV cache is reused across the steps of a conversation, so only newly added tokens are processed after the first step.
 * **Deck.gl Deferment:** To minimize initial bundle size and complexity, 3D visualizations and massive dataset rendering (Deck.gl) are out of scope for v1.
     * MapLibre's native layer styling handles all rendering.
-* **Low Reasoning Effort & Verbosity by Default:** For models that support it, requests default to low reasoning effort and low text verbosity, since query generation doesn't need deep reasoning.
-    * Unsupported params are soft-failed and dropped rather than erroring.
-* **Anthropic Out of Scope for Direct BYO:** Anthropic's native API isn't Chat-Completions-shaped (different request/response schema, no drop-in compatibility layer), so direct Anthropic BYO isn't supported.
 * **Bounded Result History:** Result-set recall and row-level grounding are backed by a capped history, not unbounded retention.

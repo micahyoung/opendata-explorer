@@ -11,6 +11,9 @@ import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME } from "../../lib/ai/activeResul
 import { useOpenDataChatRuntime } from "../../lib/ai/chatRuntime";
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
 import { datasets } from "../../config/datasets";
+import { MODEL_DOWNLOAD_BYTES } from "../../config/localModel";
+import { startDownload } from "../../lib/ai/localModel/engineClient";
+import { useModelStatus } from "../../lib/ai/localModel/modelStatus";
 import { DatasetDetailsCard } from "./DatasetDetailsCard";
 import { GeocodeCard } from "./GeocodeCard";
 import { ArcGisToolCallCard, CkanToolCallCard, ToolCallCard } from "./ToolCallCard";
@@ -76,6 +79,49 @@ function Composer() {
   );
 }
 
+const formatGB = (bytes: number) => `${(bytes / 1e9).toFixed(1)} GB`;
+
+/** Everything the chat needs before the on-device model can answer: support check, explicit download, progress, load errors. */
+function ModelSetup() {
+  const phase = useModelStatus((s) => s.phase);
+  const message = useModelStatus((s) => s.message);
+  const loadedBytes = useModelStatus((s) => s.loadedBytes);
+  const totalBytes = useModelStatus((s) => s.totalBytes);
+  const muted = { color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: "0 0 10px" } as const;
+
+  return (
+    <div style={{ padding: 16, borderTop: "1px solid var(--line)" }}>
+      <div className="label" style={{ color: "var(--sign-green)", fontSize: 12, marginBottom: 8 }}>
+        On-device model
+      </div>
+      {phase === "checking" && <p style={muted}>Checking WebGPU support…</p>}
+      {phase === "unsupported" && <p style={muted}>{message} The map still works; the assistant needs the model.</p>}
+      {(phase === "idle" || phase === "error") && (
+        <>
+          {phase === "error" && <p style={{ ...muted, color: "var(--alert-orange-dark)" }}>Couldn't load the model: {message}</p>}
+          <p style={muted}>
+            The assistant runs entirely in your browser. Download Qwen3.5 2B (~{formatGB(MODEL_DOWNLOAD_BYTES)}, cached for next
+            time) to start; your questions never leave this device.
+          </p>
+          <button className="btn btn-primary" onClick={() => startDownload()} style={{ width: "100%" }}>
+            {phase === "error" ? "Try again" : "Download model"}
+          </button>
+        </>
+      )}
+      {phase === "downloading" && (
+        <>
+          <p style={muted}>
+            Downloading… {formatGB(loadedBytes)}
+            {totalBytes > 0 ? ` of ${formatGB(totalBytes)}` : ""}
+          </p>
+          <progress value={loadedBytes} max={totalBytes || undefined} style={{ width: "100%" }} />
+        </>
+      )}
+      {phase === "initializing" && <p style={muted}>Loading the model onto your GPU… this can take a minute.</p>}
+    </div>
+  );
+}
+
 function pickRandomSuggestions(): string[] {
   const shuffledDatasets = [...datasets].sort(() => Math.random() - 0.5);
   return shuffledDatasets.slice(0, SUGGESTION_COUNT).map((dataset) => {
@@ -87,6 +133,7 @@ function pickRandomSuggestions(): string[] {
 export function ChatPanel() {
   const runtime = useOpenDataChatRuntime();
   const suggestions = useMemo(() => pickRandomSuggestions(), []);
+  const ready = useModelStatus((s) => s.phase === "ready");
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -103,9 +150,9 @@ export function ChatPanel() {
                 <div className="label" style={{ color: "var(--sign-green)", fontSize: 12, marginBottom: 8 }}>
                   Ask the map
                 </div>
-                <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: "0 0 10px" }}>Try:</p>
+                {ready && <p style={{ color: "var(--ink-muted)", fontSize: 14, lineHeight: 1.6, margin: "0 0 10px" }}>Try:</p>}
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {suggestions.map((question) => (
+                  {ready && suggestions.map((question) => (
                     <ThreadPrimitive.Suggestion key={question} prompt={question} send asChild>
                       <button
                         type="button"
@@ -161,7 +208,7 @@ export function ChatPanel() {
               }}
             />
           </ThreadPrimitive.Viewport>
-          <Composer />
+          {ready ? <Composer /> : <ModelSetup />}
         </ThreadPrimitive.Root>
       </div>
     </AssistantRuntimeProvider>

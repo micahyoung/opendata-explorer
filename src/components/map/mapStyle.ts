@@ -1,6 +1,6 @@
 /**
  * OpenFreeMap's "liberty" style: free, no API key required, unlike Mapbox/MapTiler.
- * Keeps the app's zero-config BYO-LLM-only promise intact — no tile key needed.
+ * Keeps the app's zero-config promise intact — no tile key needed.
  */
 export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 

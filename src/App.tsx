@@ -1,33 +1,29 @@
+import { useEffect } from "react";
 import { MapShell } from "./components/map/MapShell";
 import { ChatPanel } from "./components/chat/ChatPanel";
-import { OnboardingGate } from "./components/onboarding/OnboardingGate";
 import { SettingsPanel } from "./components/settings/SettingsPanel";
 import { Header } from "./components/layout/Header";
-import { useCredentials } from "./lib/credentials/useCredentials";
+import { initLocalModel } from "./lib/ai/localModel/engineClient";
 
 function App() {
-  const hasCredentials = useCredentials((s) => !!s.credentials);
+  useEffect(() => {
+    void initLocalModel();
+  }, []);
 
   return (
-    <OnboardingGate>
-      <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh" }}>
-        <Header>
-          <SettingsPanel />
-        </Header>
-        <div className="app-body">
-          <div className="map-pane">
-            <MapShell />
-          </div>
-          <div className="chat-rail">
-            {/* ChatPanel owns useChatRuntime, which can't safely hot-swap
-                between an undefined and a real transport mid-lifecycle — so
-                it only mounts once credentials (and therefore a stable
-                transport) exist. */}
-            {hasCredentials && <ChatPanel />}
-          </div>
+    <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh" }}>
+      <Header>
+        <SettingsPanel />
+      </Header>
+      <div className="app-body">
+        <div className="map-pane">
+          <MapShell />
+        </div>
+        <div className="chat-rail">
+          <ChatPanel />
         </div>
       </div>
-    </OnboardingGate>
+    </div>
   );
 }
 

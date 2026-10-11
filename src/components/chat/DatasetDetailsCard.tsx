@@ -1,6 +1,7 @@
 import { makeAssistantToolUI } from "@assistant-ui/react";
 import { getDataset } from "../../config/datasets";
 import { getDatasetColor } from "../../config/datasetColors";
+import { StatusPill } from "./StatusPill";
 import type { DatasetDetailsParams, DatasetDetailsResult } from "../../types/socrataTool";
 
 export const DatasetDetailsCard = makeAssistantToolUI<DatasetDetailsParams, DatasetDetailsResult>({
@@ -26,13 +27,7 @@ export const DatasetDetailsCard = makeAssistantToolUI<DatasetDetailsParams, Data
           <span className="label" style={{ fontSize: 11, color: accent }}>
             {names.join(", ") || "Dataset"}
           </span>
-          <span
-            className="label"
-            style={{ fontSize: 10, color: statusColor, display: "flex", alignItems: "center", gap: 4 }}
-          >
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor, display: "inline-block" }} />
-            {statusLabel}
-          </span>
+          <StatusPill label={statusLabel} color={statusColor} pending={!result} />
         </div>
       </div>
     );

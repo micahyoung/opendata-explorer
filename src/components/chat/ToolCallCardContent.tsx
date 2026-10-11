@@ -3,6 +3,7 @@ import { getDataset } from "../../config/datasets";
 import { getDatasetColor } from "../../config/datasetColors";
 import { useMapLayersStore } from "../../lib/mapState/mapLayersStore";
 import { ErrorObservationBadge } from "./ErrorObservationBadge";
+import { StatusPill } from "./StatusPill";
 
 interface QueryCardParams {
   datasetId: string;
@@ -51,10 +52,7 @@ export function ToolCallCardContent<TArgs extends QueryCardParams, TResult exten
         <span className="label" style={{ fontSize: 11, color: accent }}>
           {dataset?.name ?? args.datasetId ?? "Dataset"}
         </span>
-        <span className="label" style={{ fontSize: 10, color: statusColor, display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor, display: "inline-block" }} />
-          {statusLabel}
-        </span>
+        <StatusPill label={statusLabel} color={statusColor} pending={!result} />
       </div>
 
       {args.where && (

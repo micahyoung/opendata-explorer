@@ -24,5 +24,7 @@ export default defineConfig({
     __TRANSFORMERS_VERSION__: JSON.stringify(transformersVersion),
   },
   // Pre-bundle up front: discovering it lazily from the worker made the dev server answer 504 until the dep cache was rebuilt.
+  // Opt-in: `npm run dev:lan` sets this so other machines can reach the dev server by hostname.
+  server: { allowedHosts: process.env.DEV_ALLOWED_HOSTS?.split(',') },
   optimizeDeps: { include: ['@huggingface/transformers'] },
 })

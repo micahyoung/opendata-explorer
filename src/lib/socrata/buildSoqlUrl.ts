@@ -11,7 +11,7 @@ export function buildSoqlUrl(dataset: SocrataDatasetDefinition, params: SocrataQ
   const clampedLimit = Math.min(params.limit ?? DEFAULT_LIMIT, SOCRATA_MAX_LIMIT);
 
   const endpointSuffix = dataset.geo.mode === "native" ? "geojson" : "json";
-  const url = new URL(`https://${dataset.domain}/resource/${dataset.id}.${endpointSuffix}`);
+  const url = new URL(`https://${dataset.domain}/resource/${dataset.resourceId}.${endpointSuffix}`);
 
   const select = buildSelect(dataset, params.select);
   if (select) url.searchParams.set("$select", select);

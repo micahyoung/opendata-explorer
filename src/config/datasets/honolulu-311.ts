@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "6hui-dvrh",
+  id: "honolulu-311",
+  resourceId: "6hui-dvrh",
   domain: "data.honolulu.gov",
   name: "Honolulu 311 Reports",
   description:

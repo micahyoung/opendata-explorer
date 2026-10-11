@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "5ngg-rpne",
+  id: "seattle-311",
+  resourceId: "5ngg-rpne",
   domain: "data.seattle.gov",
   name: "Seattle Customer Service Requests",
   description:

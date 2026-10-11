@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "d4px-6rwg",
+  id: "kansas-city-311",
+  resourceId: "d4px-6rwg",
   domain: "data.kcmo.org",
   name: "Kansas City 311 Call Center Reported Issues",
   description:

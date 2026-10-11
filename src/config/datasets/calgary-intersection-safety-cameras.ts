@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "dv2f-necx",
+  id: "calgary-intersection-safety-cameras",
+  resourceId: "dv2f-necx",
   domain: "data.calgary.ca",
   name: "Calgary Intersection Safety Cameras",
   description:

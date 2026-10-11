@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "wrik-xasw",
+  id: "austin-tree-inventory",
+  resourceId: "wrik-xasw",
   domain: "data.austintexas.gov",
   name: "Austin Tree Inventory",
   description:

@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "jcys-68y7",
+  id: "mesa-tree-inventory",
+  resourceId: "jcys-68y7",
   domain: "citydata.mesaaz.gov",
   name: "Mesa Tree Inventory",
   description:

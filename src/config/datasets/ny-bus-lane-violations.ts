@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "kh8p-hcbm",
+  id: "ny-bus-lane-violations",
+  resourceId: "kh8p-hcbm",
   domain: "data.ny.gov",
   name: "MTA Bus Automated Camera Enforcement Violations",
   description:

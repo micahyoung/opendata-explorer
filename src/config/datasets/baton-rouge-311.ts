@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "7ixm-mnvx",
+  id: "baton-rouge-311",
+  resourceId: "7ixm-mnvx",
   domain: "data.brla.gov",
   name: "Baton Rouge 311 Citizen Requests",
   description:

@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "mnkf-cu5c",
+  id: "prince-georges-speed-cameras",
+  resourceId: "mnkf-cu5c",
   domain: "data.princegeorgescountymd.gov",
   name: "Prince George's County Speed Cameras",
   description:

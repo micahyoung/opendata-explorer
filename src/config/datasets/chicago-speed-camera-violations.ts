@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "hhkd-xvj4",
+  id: "chicago-speed-camera-violations",
+  resourceId: "hhkd-xvj4",
   domain: "data.cityofchicago.org",
   name: "Chicago Speed Camera Violations",
   description:

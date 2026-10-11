@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "2jgv-pqrq",
+  id: "new-orleans-311",
+  resourceId: "2jgv-pqrq",
   domain: "data.nola.gov",
   name: "New Orleans 311 OPCD Calls",
   description:

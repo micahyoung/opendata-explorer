@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "hexd-c4gn",
+  id: "chicago-cps-schools",
+  resourceId: "hexd-c4gn",
   domain: "data.cityofchicago.org",
   name: "Chicago Public Schools — School Locations SY2425",
   description:

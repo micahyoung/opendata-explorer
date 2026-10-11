@@ -2,7 +2,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "gcej-gmiw",
+  id: "cincinnati-311",
+  resourceId: "gcej-gmiw",
   domain: "data.cincinnati-oh.gov",
   name: "Cincinnati 311 (Non-Emergency) Service Requests",
   description:

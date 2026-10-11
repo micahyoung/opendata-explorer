@@ -8,7 +8,8 @@ import { datasetDefinitionSchema, type DatasetDefinition } from "./datasets.sche
 // assume next year's rollover is a simple ID swap without re-checking columns.
 const definition: DatasetDefinition = {
   backend: "socrata",
-  id: "2cy6-i7zn",
+  id: "la-311",
+  resourceId: "2cy6-i7zn",
   domain: "data.lacity.org",
   name: "MyLA311 Cases (2026)",
   description:

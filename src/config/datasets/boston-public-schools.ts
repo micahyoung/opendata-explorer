@@ -4,7 +4,7 @@ const definition: DatasetDefinition = {
   backend: "arcgis",
   id: "boston-public-schools",
   featureServerUrl:
-    "https://services.arcgis.com/sFnw0xNflSi8J0uh/arcgis/rest/services/Schools_Public_2026_0204/FeatureServer/0",
+    "https://services.arcgis.com/sFnw0xNflSi8J0uh/arcgis/rest/services/Schools_Public_2026_0917/FeatureServer/0",
   name: "Boston Public Schools",
   description:
     "Locations of Boston Public Schools (BPS) campuses, including elementary, middle, and high schools across Boston neighborhoods. Published by the Boston Planning & Development Agency.",

@@ -12,6 +12,7 @@ import { computeFacets, formatFacetSummary } from "../socrata/computeFacets";
 import { fetchSocrata } from "../socrata/fetchSocrata";
 import { fetchNominatim } from "../geocoding/fetchNominatim";
 import { ArcgisHttpError, CkanHttpError, NominatimHttpError, SocrataHttpError, TimeoutError } from "../utils/errors";
+import { backendMismatchMessage } from "./backendMismatchMessage";
 import { listResultSetsTool, readActiveResultsTool, readPastResultsTool } from "./resultSetTools";
 
 const geocodeInputSchema = z.object({
@@ -115,7 +116,7 @@ export const fetchSocrataDataTool = tool({
     if (!dataset || dataset.backend !== "socrata") {
       return {
         success: false as const,
-        error: { kind: "validation" as const, message: `Unknown or non-Socrata datasetId: ${params.datasetId}` },
+        error: { kind: "validation" as const, message: backendMismatchMessage("socrata", params.datasetId) },
       };
     }
 
@@ -203,7 +204,7 @@ export const fetchArcGisDataTool = tool({
     if (!dataset || dataset.backend !== "arcgis") {
       return {
         success: false as const,
-        error: { kind: "validation" as const, message: `Unknown or non-ArcGIS datasetId: ${params.datasetId}` },
+        error: { kind: "validation" as const, message: backendMismatchMessage("arcgis", params.datasetId) },
       };
     }
 
@@ -295,7 +296,7 @@ export const fetchCkanDataTool = tool({
     if (!dataset || dataset.backend !== "ckan") {
       return {
         success: false as const,
-        error: { kind: "validation" as const, message: `Unknown or non-CKAN datasetId: ${params.datasetId}` },
+        error: { kind: "validation" as const, message: backendMismatchMessage("ckan", params.datasetId) },
       };
     }
 

@@ -4,13 +4,24 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      # CI runs Node 20; types for a newer Node would be misleading.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
+      # ai and its integrations must move together (peer dependency on ai's major).
+      ai-sdk:
+        patterns: ["ai", "@ai-sdk/*", "@assistant-ui/*"]
       npm-minor-patch:
         update-types: [minor, patch]
+      npm-major:
+        update-types: [major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     groups:
       actions:
         patterns: ["*"]

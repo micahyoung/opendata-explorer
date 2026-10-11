@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
     "@types/lz-string": "^1.5.0",
-    "@types/node": "^24.13.2",
+    "@types/node": "^24.19.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",

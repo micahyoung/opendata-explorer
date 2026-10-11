@@ -59,7 +59,8 @@ npm run dev      # start the dev server
 npm run dev:lan  # same, but reachable from other machines on your LAN (see below)
 npm run build     # typecheck + production build
 npm run lint      # oxlint
-npm test          # unit tests plus the exemplar live-data regression suite (hits real Socrata/ArcGIS/CKAN endpoints)
+npm test          # unit tests (offline)
+npm run test:live # exemplar live-data regression suite (hits real Socrata/ArcGIS/CKAN endpoints)
 ```
 
 ### Testing from another machine on your LAN
@@ -69,7 +70,7 @@ npm test          # unit tests plus the exemplar live-data regression suite (hit
 - **WebGPU needs a secure context.** `http://<host>.local:5173` isn't one, so on the other machine add that exact origin to `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, set it to Enabled, and relaunch Chrome.
 - **The model cache is per-origin.** The ~5.5 GB cache belongs to the exact origin (scheme, host and port), so changing the hostname or port means downloading the model again.
 
-`tests/exemplars.live.test.ts` runs every hand-written example query from `src/config/datasets/*.ts` against its live backend and asserts each returns at least one feature. It's a smoke test, not a snapshot test — it catches upstream dataset/column renames, not content regressions.
+`tests/exemplars.live.test.ts` (`npm run test:live`, run on a schedule by `.github/workflows/live-tests.yml` and kept out of `npm test` so upstream outages don't block CI) runs every hand-written example query from `src/config/datasets/*.ts` against its live backend and asserts each returns at least one feature. It's a smoke test, not a snapshot test — it catches upstream dataset/column renames, not content regressions.
 
 ## Adding a dataset
 

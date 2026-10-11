@@ -4,7 +4,7 @@ import {
   ComposerPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
-  useComposerRuntime,
+  useAui,
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME, shouldAttachActiveResultsNote } from "../../lib/ai/activeResultsSignal";
@@ -32,19 +32,19 @@ const SUGGESTION_COUNT = 4;
  * manual-send treatment or it would send before the attachment is added.
  */
 function Composer() {
-  const composerRuntime = useComposerRuntime();
+  const aui = useAui();
 
   const handleSend = () => {
     const { activeResultsChanged, clearActiveResultsChanged, order } = useMapLayersStore.getState();
     if (shouldAttachActiveResultsNote(activeResultsChanged, order.length)) {
-      composerRuntime.addAttachment({
+      aui.composer().addAttachment({
         type: "data",
         name: ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME,
         content: [{ type: "data", name: ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME, data: {} }],
       });
     }
     clearActiveResultsChanged();
-    composerRuntime.send();
+    aui.composer().send();
   };
 
   const handleSubmit = (e: FormEvent) => {

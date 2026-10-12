@@ -1,9 +1,10 @@
-import { asSchema, type FlexibleSchema, type JSONSchema7 } from "ai";
-import { MAX_OUTPUT_TOKENS, MAX_TOOL_RESULT_CHARS } from "../src/config/localModel";
+import { asSchema, Experimental_Agent as ToolLoopAgent, stepCountIs, type FlexibleSchema, type JSONSchema7 } from "ai";
+import { MAX_OUTPUT_TOKENS, MAX_TOOL_RESULT_CHARS, MODEL_ID } from "../src/config/localModel";
 import type { FunctionTool, LanguageModelPrompt } from "../src/lib/ai/localModel/aiTypes";
 import { engineClient } from "../src/lib/ai/localModel/engineClient";
+import { createQwenLanguageModel } from "../src/lib/ai/localModel/qwenModel";
 import { parseQwenOutput, toQwenMessages } from "../src/lib/ai/localModel/qwenPrompt";
-import type { ChatMessage, GenerateResult } from "../src/lib/ai/localModel/types";
+import type { ChatMessage, GenerateRequest, GenerateResult, LocalEngine } from "../src/lib/ai/localModel/types";
 import { buildSystemPrompt } from "../src/lib/ai/systemPrompt";
 import { tools } from "../src/lib/ai/tools";
 
@@ -73,3 +74,72 @@ export function logToPage(id: string, ok: boolean, detail: string) {
   const w = window.top ?? window;
   ((w as unknown as { __evalResults?: unknown[] }).__evalResults ??= []).push({ id, ok, detail });
 }
+
+/** An engine that rewrites the messages before they reach the real one, to try a prompt change without touching app code. */
+export const engineWith = (edit: (messages: ChatMessage[]) => ChatMessage[]): LocalEngine => ({
+  generate: (req: GenerateRequest, signal?: AbortSignal) => engineClient.generate({ ...req, messages: edit(req.messages) }, signal),
+});
+
+export interface AgentRun {
+  steps: number;
+  calls: { name: string; input: Record<string, unknown>; ok: boolean | undefined }[];
+  finalText: string;
+  /** The last step produced text and no tool call. */
+  completed: boolean;
+  /** Identical consecutive tool calls (the loop seen on Baltimore). */
+  repeats: number;
+  mapped: boolean;
+  error?: string;
+}
+
+type Step = { toolCalls: { toolCallId: string; toolName: string; input: unknown }[]; toolResults: { toolCallId: string; output: unknown }[]; text: string };
+
+function summarize(steps: Step[], error?: string): AgentRun {
+  const calls = steps.flatMap((s) =>
+    s.toolCalls.map((c) => {
+      const r = s.toolResults.find((x) => x.toolCallId === c.toolCallId)?.output as { success?: boolean } | undefined;
+      return { name: c.toolName, input: c.input as Record<string, unknown>, ok: r?.success };
+    }),
+  );
+  const last = steps.at(-1);
+  const finalText = last?.text ?? "";
+  return {
+    steps: steps.length,
+    calls,
+    finalText,
+    completed: !error && !!last && last.toolCalls.length === 0 && finalText.trim().length > 0,
+    repeats: calls.filter((c, i) => i > 0 && c.name === calls[i - 1].name && JSON.stringify(c.input) === JSON.stringify(calls[i - 1].input)).length,
+    mapped: calls.some((c) => c.name.startsWith("fetch") && c.ok === true),
+    error,
+  };
+}
+
+/**
+ * The real agent loop (same model wrapper, instructions, tools and step cap as chatRuntime.ts), run to completion or until `budgetMs`
+ * passes. On timeout the loop is aborted (so the engine is free for the next case) and the steps finished so far are returned.
+ */
+export async function runAgent(question: string, engine: LocalEngine = engineClient, budgetMs = 600_000): Promise<AgentRun> {
+  const steps: Step[] = [];
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), budgetMs);
+  const agent = new ToolLoopAgent({
+    model: createQwenLanguageModel({ engine, modelId: MODEL_ID, maxTokens: MAX_OUTPUT_TOKENS, maxToolResultChars: MAX_TOOL_RESULT_CHARS }),
+    instructions: buildSystemPrompt(),
+    tools,
+    stopWhen: stepCountIs(8),
+    onStepFinish: (step) => void steps.push(step as unknown as Step),
+  });
+  try {
+    await agent.generate({ prompt: question, abortSignal: abort.signal });
+    return summarize(steps);
+  } catch (e) {
+    return summarize(steps, abort.signal.aborted ? `timed out after ${budgetMs / 1000}s` : e instanceof Error ? e.message : String(e));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export const describeRun = (r: AgentRun) =>
+  `${r.error ? `ERROR ${r.error}` : r.completed ? "completed" : "NO ANSWER"}, ${r.steps} steps, ${r.repeats} repeats, ${r.mapped ? "mapped" : "not mapped"}` +
+  `\n  calls: ${r.calls.map((c) => `${c.name}${c.ok === false ? "(failed)" : ""}`).join(" > ") || "-"}` +
+  `\n  answer: ${r.finalText.replace(/\s+/g, " ").slice(0, 160)}`;

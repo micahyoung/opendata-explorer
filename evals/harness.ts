@@ -50,9 +50,14 @@ export interface StepResult extends GenerateResult {
   outcome: Outcome;
 }
 
-/** One engine step, exactly as the agent loop makes it. */
-export async function step(messages: ChatMessage[]): Promise<StepResult> {
-  const result = await engineClient.generate({ messages, maxTokens: MAX_OUTPUT_TOKENS, thinking: false });
+/**
+ * One engine step, as the agent loop makes it, but always a cold start. The engine keeps a KV cache and its own earlier outputs
+ * between calls, and a case's prompt must not depend on the case that ran before it, so the engine is reset first. The cost is that
+ * a second step is prefilled in full instead of reusing the cache, as it would be in the app.
+ */
+export async function step(messages: ChatMessage[], options: { forbidToolCalls?: boolean; maxTokens?: number } = {}): Promise<StepResult> {
+  await engineClient.reset();
+  const result = await engineClient.generate({ messages, maxTokens: options.maxTokens ?? MAX_OUTPUT_TOKENS, thinking: false, forbidToolCalls: options.forbidToolCalls });
   return { ...result, outcome: classify(result.raw) };
 }
 

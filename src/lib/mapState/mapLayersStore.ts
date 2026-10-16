@@ -27,12 +27,21 @@ interface MapLayersState {
     where?: string;
     featureCollection: FeatureCollection;
     summary: string;
-  }) => void;
+  }) => string;
   activateLayer: (id: string) => void;
   clearFlyTo: () => void;
   setMapInstance: (map: MapLibreMap | null) => void;
   markActiveResultsChanged: () => void;
   clearActiveResultsChanged: () => void;
+}
+
+function isSameResult(existing: LayerEntry, entry: { datasetId: string; where?: string; featureCollection: FeatureCollection }) {
+  return (
+    existing.datasetId === entry.datasetId &&
+    existing.where === entry.where &&
+    existing.featureCollection.features.length === entry.featureCollection.features.length &&
+    JSON.stringify(existing.featureCollection) === JSON.stringify(entry.featureCollection)
+  );
 }
 
 export const useMapLayersStore = create<MapLayersState>((set, get) => ({
@@ -41,7 +50,16 @@ export const useMapLayersStore = create<MapLayersState>((set, get) => ({
   pendingFlyTo: undefined,
   mapInstance: null,
   activeResultsChanged: false,
-  addLayer: (entry) =>
+  addLayer: (entry) => {
+    // The same query returning the same rows is one result: show it once and hand back the layer that already holds it.
+    const duplicate = get().order.find((id) => {
+      const existing = get().entries.get(id);
+      return existing && isSameResult(existing, entry);
+    });
+    if (duplicate) {
+      get().activateLayer(duplicate);
+      return duplicate;
+    }
     set((state) => {
       const entries = new Map(state.entries);
       const order = [...state.order, entry.id];
@@ -66,7 +84,9 @@ export const useMapLayersStore = create<MapLayersState>((set, get) => ({
         pendingFlyTo: entries.get(entry.id)?.bbox,
         activeResultsChanged: true,
       };
-    }),
+    });
+    return entry.id;
+  },
   activateLayer: (id) => {
     const state = get();
     const entry = state.entries.get(id);

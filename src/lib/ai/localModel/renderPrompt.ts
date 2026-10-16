@@ -49,6 +49,7 @@ export function planPrompt(messages: ChatMessage[], gens: Generation[], cachedTe
   if (assistantTurns === 0) return { text: renderChatml(messages, [], thinking), cold: "new conversation" };
   if (assistantTurns !== gens.length) return { text: renderChatml(messages, [], thinking), cold: "assistant turn count mismatch" };
   const text = renderChatml(messages, gens, thinking);
-  if (cachedText === undefined || !text.startsWith(cachedText)) return { text, cold: "prefix mismatch" };
+  // A cold prefill must not carry another history's raw outputs: `gens` is matched by position, so they only belong here if the cache is extended.
+  if (cachedText === undefined || !text.startsWith(cachedText)) return { text: renderChatml(messages, [], thinking), cold: "prefix mismatch" };
   return { text };
 }

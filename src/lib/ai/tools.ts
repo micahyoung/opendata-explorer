@@ -140,7 +140,7 @@ export const fetchSocrataDataTool = tool({
       const facets = computeFacets(dataset, featureCollection);
       const facetSummary = formatFacetSummary(facets);
 
-      useMapLayersStore.getState().addLayer({
+      const layerId = useMapLayersStore.getState().addLayer({
         id: toolCallId,
         datasetId: dataset.id,
         where: params.where,
@@ -154,7 +154,7 @@ export const fetchSocrataDataTool = tool({
         where: params.where,
         featureCount: featureCollection.features.length,
         facets,
-        resultSetId: toolCallId,
+        resultSetId: layerId,
         displayedOnMap: true as const,
       };
     } catch (err) {
@@ -237,7 +237,7 @@ export const fetchArcGisDataTool = tool({
       const facets = computeFacets(dataset, featureCollection);
       const facetSummary = formatFacetSummary(facets);
 
-      useMapLayersStore.getState().addLayer({
+      const layerId = useMapLayersStore.getState().addLayer({
         id: toolCallId,
         datasetId: dataset.id,
         where: params.where,
@@ -251,7 +251,7 @@ export const fetchArcGisDataTool = tool({
         where: params.where,
         featureCount: featureCollection.features.length,
         facets,
-        resultSetId: toolCallId,
+        resultSetId: layerId,
         displayedOnMap: true as const,
       };
     } catch (err) {
@@ -319,7 +319,7 @@ export const fetchCkanDataTool = tool({
       const facets = computeFacets(dataset, featureCollection);
       const facetSummary = formatFacetSummary(facets);
 
-      useMapLayersStore.getState().addLayer({
+      const layerId = useMapLayersStore.getState().addLayer({
         id: toolCallId,
         datasetId: dataset.id,
         featureCollection,
@@ -331,7 +331,7 @@ export const fetchCkanDataTool = tool({
         datasetId: dataset.id,
         featureCount: featureCollection.features.length,
         facets,
-        resultSetId: toolCallId,
+        resultSetId: layerId,
         displayedOnMap: true as const,
       };
     } catch (err) {

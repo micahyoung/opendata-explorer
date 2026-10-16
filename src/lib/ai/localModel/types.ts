@@ -7,6 +7,8 @@ export interface GenerateRequest {
   messages: ChatMessage[];
   maxTokens: number;
   thinking: boolean;
+  /** Make a tool call impossible this step (the model can only answer in text). The prompt, and so the KV cache, is unchanged. */
+  forbidToolCalls?: boolean;
 }
 
 /** One engine step as the model saw it, for the downloadable session log. */

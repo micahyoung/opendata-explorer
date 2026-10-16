@@ -5,6 +5,7 @@ import { MAX_OUTPUT_TOKENS, MAX_TOOL_RESULT_CHARS, MODEL_ID } from "../../config
 import { ActiveResultsAwareChatTransport } from "./activeResultsAwareChatTransport";
 import { engineClient } from "./localModel/engineClient";
 import { createQwenLanguageModel } from "./localModel/qwenModel";
+import { isRepeatedCall } from "./loopGuard";
 import { buildSystemPrompt } from "./systemPrompt";
 import { tools } from "./tools";
 
@@ -28,6 +29,8 @@ export function useOpenDataChatRuntime() {
       instructions: buildSystemPrompt(),
       tools,
       stopWhen: stepCountIs(MAX_AGENT_STEPS),
+      // The on-device model tends to re-issue a call that already succeeded instead of answering. Once it does, force a text reply.
+      prepareStep: ({ steps }) => (isRepeatedCall(steps) ? { toolChoice: "none" } : undefined),
     });
     return new ActiveResultsAwareChatTransport({ agent });
   }, []);

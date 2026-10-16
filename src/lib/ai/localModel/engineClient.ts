@@ -106,8 +106,16 @@ export async function initLocalModel() {
   if (await isModelCached()) startDownload(true);
 }
 
-/** The chat runtime's engine: forwards each step to the worker, and cancels it there when the signal aborts. */
-export const engineClient: LocalEngine = {
+/**
+ * The chat runtime's engine: forwards each step to the worker, and cancels it there when the signal aborts.
+ * `reset` drops the worker's KV cache and generation history so the next step is a cold start. It sends no acknowledgement: the worker
+ * clears its state when it reaches the message, ahead of any step posted after it. Evals call it to keep cases independent.
+ */
+export const engineClient: LocalEngine & { reset(): Promise<void> } = {
+  reset() {
+    if (worker) send({ type: "reset" });
+    return Promise.resolve();
+  },
   generate(req: GenerateRequest, signal?: AbortSignal) {
     if (status().phase !== "ready") return Promise.reject(new Error("The on-device model is not loaded yet."));
     if (signal?.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));

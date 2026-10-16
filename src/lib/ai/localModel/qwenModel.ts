@@ -21,7 +21,7 @@ export function createQwenLanguageModel({ engine, modelId, maxTokens, maxToolRes
     const tools = (options.tools ?? []).filter((t): t is FunctionTool => t.type === "function");
     const messages = toQwenMessages(options.prompt, tools, maxToolResultChars);
     const result = await engine.generate(
-      { messages, maxTokens: options.maxOutputTokens ?? maxTokens, thinking: false },
+      { messages, maxTokens: options.maxOutputTokens ?? maxTokens, thinking: false, forbidToolCalls: options.toolChoice?.type === "none" },
       options.abortSignal,
     );
     const parsed = parseQwenOutput(result.raw, tools);

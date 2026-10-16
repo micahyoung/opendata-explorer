@@ -7,6 +7,7 @@ import {
   type ToolSet,
   type UIMessage,
 } from "ai";
+import { withOutOfStepsNotice } from "./outOfSteps";
 import { ACTIVE_RESULTS_CHANGED_ATTACHMENT_NAME, formatActiveResultsChangedText } from "./activeResultsSignal";
 
 /**
@@ -38,7 +39,7 @@ export class ActiveResultsAwareChatTransport<
     });
 
     const result = await this.agent.stream({ prompt: modelMessages, abortSignal });
-    return result.toUIMessageStream();
+    return withOutOfStepsNotice(result.toUIMessageStream());
   }
 
   /**

@@ -65,4 +65,19 @@ describe("planPrompt", () => {
     const plan = planPrompt([sys, user, asst("a"), tool], [{ header, raw: RAW }], undefined, false);
     expect(plan.cold).toBe("prefix mismatch");
   });
+
+  it("does not put another history's raw output into a cold prefill", () => {
+    const gens: Generation[] = [{ header, raw: RAW }];
+    const edited = [sys, { role: "user", content: "different" }, asst("a"), tool] satisfies ChatMessage[];
+    const plan = planPrompt(edited, gens, first.text + RAW, false);
+    expect(plan.cold).toBe("prefix mismatch");
+    expect(plan.text).toBe(renderChatml(edited, [], false));
+    expect(plan.text).not.toContain(RAW);
+  });
+
+  it("renders a cold prefill with no cache the same way", () => {
+    const messages = [sys, user, asst("a"), tool] satisfies ChatMessage[];
+    const plan = planPrompt(messages, [{ header, raw: RAW }], undefined, false);
+    expect(plan.text).toBe(renderChatml(messages, [], false));
+  });
 });

@@ -66,6 +66,9 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
   const encode = (text: string) =>
     (tokenizer(text, { add_special_tokens: false }).input_ids.tolist() as bigint[][])[0].map(Number);
 
+  // Token sequences that open a tool call; banned when a step must answer in text. Both are encoded because the parser accepts a bare `<function=`.
+  const toolCallOpeners = ["<tool_call>", "<function="].map(encode);
+
   let cached: { cache: KvCache; text: string; ids: number[] } | undefined;
   let gens: Generation[] = [];
   let busy = false;
@@ -104,6 +107,7 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
           ...(warm ? { past_key_values: cached!.cache } : {}),
           max_new_tokens: req.maxTokens,
           do_sample: false,
+          ...(req.forbidToolCalls ? { bad_words_ids: toolCallOpeners } : {}),
           return_dict_in_generate: true,
           stopping_criteria: stopping,
         })) as { sequences: Tensor; past_key_values: KvCache };

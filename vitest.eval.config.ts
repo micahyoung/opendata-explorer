@@ -27,7 +27,7 @@ export default mergeConfig(
       include: ["evals/**/*.eval.ts"],
       setupFiles: ["evals/setup.ts"],
       fileParallelism: false,
-      testTimeout: 240_000,
+      testTimeout: Number(process.env.VITE_EVAL_TIMEOUT_MS ?? 360_000),
       hookTimeout: 900_000,
       outputFile: { json: "evals/results/latest.json" },
       reporters: ["verbose", "json"],

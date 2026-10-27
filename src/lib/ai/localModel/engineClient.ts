@@ -3,7 +3,7 @@ import type { WorkerRequest, WorkerResponse } from "./engine.worker";
 import { fetchModelBytes } from "./modelSize";
 import { checkCapability, useModelStatus } from "./modelStatus";
 import { useSessionLog } from "./sessionLog";
-import type { GenerateRequest, GenerateResult, LocalEngine } from "./types";
+import { abortedWith, type GenerateRequest, type GenerateResult, type LocalEngine } from "./types";
 import { MODEL_ID } from "../../../config/localModel";
 
 let worker: Worker | undefined;
@@ -55,7 +55,7 @@ function onMessage(event: MessageEvent<WorkerResponse>) {
         status().set({ phase: "error", message: msg.message });
         return;
       }
-      pending.get(msg.id)?.reject(msg.aborted ? new DOMException("Aborted", "AbortError") : new Error(msg.message));
+      pending.get(msg.id)?.reject(msg.aborted ? abortedWith(msg.progress) : new Error(msg.message));
       pending.delete(msg.id);
       return;
   }

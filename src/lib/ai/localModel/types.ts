@@ -17,6 +17,9 @@ export interface StepTrace {
   step: number;
   startedAt: string;
   ms: number;
+  /** Of `ms`: time to the first generated token (the prefill of `fedTokens`), and the rest (decoding `completionTokens`). Excludes tokenizing and cache setup. */
+  prefillMs: number;
+  decodeMs: number;
   /** Why the KV cache was discarded and the whole prompt re-prefilled; absent when the cache was extended. */
   coldReason?: string;
   /** Tokens in the full prompt after prefill. */
@@ -28,6 +31,28 @@ export interface StepTrace {
   rawOutput: string;
   completionTokens: number;
   finish: "stop" | "length";
+}
+
+/** What an aborted step had done when it stopped, so a cut-off generation can still be diagnosed. */
+export interface StepProgress {
+  /** "decode" once the first token exists; an abort during prefill only lands after that token, so this is rarely "prefill". */
+  phase: "prefill" | "decode";
+  elapsedMs: number;
+  /** Time to the first generated token (the whole elapsed time if there was none). */
+  prefillMs: number;
+  tokens: number;
+  /** Decoded text so far, special tokens kept. */
+  partial: string;
+}
+
+/** The rejection for an aborted step: an `AbortError` (what callers already recognise), carrying `progress` when the engine had it. */
+export function abortedWith(progress?: StepProgress): DOMException {
+  const error = new DOMException("Aborted", "AbortError");
+  return progress ? Object.assign(error, { progress }) : error;
+}
+
+export function progressOf(error: unknown): StepProgress | undefined {
+  return typeof error === "object" && error !== null && "progress" in error ? (error as { progress: StepProgress }).progress : undefined;
 }
 
 export interface GenerateResult {

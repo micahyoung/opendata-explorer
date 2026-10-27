@@ -6,6 +6,8 @@ const trace = (step: number, rawOutput: string, coldReason?: string): StepTrace 
   step,
   startedAt: "2026-01-01T00:00:00.000Z",
   ms: 1000,
+  prefillMs: 400,
+  decodeMs: 600,
   ...(coldReason ? { coldReason } : {}),
   promptTokens: 10,
   reusedTokens: 0,

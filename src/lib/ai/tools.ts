@@ -59,6 +59,27 @@ const datasetDetailsInputSchema = z.object({
     .describe("One or more dataset IDs to fetch field lists and example queries for. Pass multiple when comparing datasets."),
 });
 
+/** The static lookup behind getDatasetDetails; the evals build the same result without going through the AI SDK. */
+export function lookupDatasetDetails(datasetIds: readonly string[]) {
+  return datasetIds.map((id) => {
+    const dataset = getDataset(id);
+    if (!dataset) {
+      return {
+        datasetId: id,
+        success: false as const,
+        error: { kind: "validation" as const, message: `Unknown datasetId: ${id}` },
+      };
+    }
+    return {
+      datasetId: dataset.id,
+      success: true as const,
+      fields: dataset.fields,
+      exemplars: dataset.exemplars,
+      syntaxGuide: BACKEND_SYNTAX_GUIDE[dataset.backend],
+    };
+  });
+}
+
 /**
  * Delivers the field schema + worked SoQL exemplars for specific datasets on
  * demand, instead of injecting every dataset's full schema into the system
@@ -69,25 +90,7 @@ export const getDatasetDetailsTool = tool({
   description:
     "Fetch the field list, example queries, and query-syntax guide for one or more datasets. Call this before querying any dataset you haven't already seen the details of this conversation — its response tells you which fetch tool to call and the exact query syntax that dataset's backend expects.",
   inputSchema: datasetDetailsInputSchema,
-  execute: async (params) => {
-    return params.datasetIds.map((id) => {
-      const dataset = getDataset(id);
-      if (!dataset) {
-        return {
-          datasetId: id,
-          success: false as const,
-          error: { kind: "validation" as const, message: `Unknown datasetId: ${id}` },
-        };
-      }
-      return {
-        datasetId: dataset.id,
-        success: true as const,
-        fields: dataset.fields,
-        exemplars: dataset.exemplars,
-        syntaxGuide: BACKEND_SYNTAX_GUIDE[dataset.backend],
-      };
-    });
-  },
+  execute: async (params) => lookupDatasetDetails(params.datasetIds),
 });
 
 const inputSchema = z.object({

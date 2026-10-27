@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import type { ProgressInfo } from "@huggingface/transformers";
 import { loadEngine, type Engine } from "./engineCore";
-import type { GenerateRequest, GenerateResult } from "./types";
+import { progressOf, type GenerateRequest, type GenerateResult, type StepProgress } from "./types";
 
 export type WorkerRequest =
   | { type: "load" }
@@ -13,7 +13,7 @@ export type WorkerResponse =
   | { type: "progress"; info: ProgressInfo }
   | { type: "loaded" }
   | { type: "result"; id: number; result: GenerateResult }
-  | { type: "error"; id?: number; message: string; aborted?: boolean };
+  | { type: "error"; id?: number; message: string; aborted?: boolean; progress?: StepProgress };
 
 const post = (m: WorkerResponse) => self.postMessage(m);
 const messageOf = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -42,7 +42,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         const result = await (await engine).generate(msg.req, controller.signal);
         post({ type: "result", id: msg.id, result });
       } catch (e) {
-        post({ type: "error", id: msg.id, message: messageOf(e), aborted: controller.signal.aborted });
+        post({ type: "error", id: msg.id, message: messageOf(e), aborted: controller.signal.aborted, progress: progressOf(e) });
       } finally {
         inflight.delete(msg.id);
       }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { baltimoreResult } from "./fixtures/baltimoreRedLightCameras";
-import { buildMessages, describeOutcome, logToPage, step, type Outcome, type Turn } from "./harness";
+import type { Outcome } from "./grade";
+import { logToPage, step } from "./harness";
+import { buildMessages, describeOutcome, type Turn } from "./prompt";
 import type { ChatMessage } from "../src/lib/ai/localModel/types";
 import { tools } from "../src/lib/ai/tools";
 
@@ -51,7 +53,7 @@ describe("summary after a successful fetch", () => {
     const run = async ({ annotate }: { annotate: (message: string) => Promise<unknown> }) => {
       const result = await step(c.messages());
       const detail = describeOutcome(result.outcome);
-      await annotate(`${detail}  [${result.promptTokens} prompt tokens, ${result.completionTokens} generated, ${result.trace?.ms ?? "?"} ms]`);
+      await annotate(`${detail}  [${result.promptTokens} prompt tokens, ${result.completionTokens} generated, ${result.ms} ms]`);
       const ok = result.outcome.kind === "text" && result.outcome.text.includes("180");
       logToPage(c.name, ok, detail);
       if (!c.observe) expect(detail, c.name).toSatisfy(() => ok);
@@ -86,7 +88,7 @@ describe("first turn still calls a tool", () => {
       it(name, async ({ annotate }) => {
         const result = await step(system(buildMessages(q), v.edit));
         const detail = describeOutcome(result.outcome);
-        await annotate(`${detail}  [${result.promptTokens} prompt tokens, ${result.completionTokens} generated, ${result.trace?.ms ?? "?"} ms]`);
+        await annotate(`${detail}  [${result.promptTokens} prompt tokens, ${result.completionTokens} generated, ${result.ms} ms]`);
         const ok = result.outcome.kind === "tool_call";
         logToPage(name, ok, detail);
         expect(detail, name).toSatisfy(() => ok);
@@ -167,7 +169,7 @@ describe("edge cases for the answer-in-text fix", () => {
       const result = await step(await c.messages());
       const detail = describeOutcome(result.outcome);
       const problem = c.check(result.outcome);
-      await annotate(`${problem ?? "ok"}: ${detail}  [${result.promptTokens} prompt tokens, ${result.completionTokens} generated, ${result.trace?.ms ?? "?"} ms]`);
+      await annotate(`${problem ?? "ok"}: ${detail}  [${result.promptTokens} prompt tokens, ${result.completionTokens} generated, ${result.ms} ms]`);
       logToPage(c.name, problem === null, `${problem ?? "ok"}: ${detail}`);
       if (!c.observe) expect(problem, c.name).toBeNull();
     });
@@ -195,7 +197,7 @@ describe("loop guard: tool calls forbidden", () => {
       // model's accuracy (it has mislabelled the districts in the facets), so numbers are reported but not asserted here.
       const mentionsCount = result.outcome.kind === "text" && result.outcome.text.includes("180");
       const grounding = summarises(result.outcome);
-      await annotate(`grounding: ${grounding ?? "ok"} | ${JSON.stringify(result.raw)}  [${result.completionTokens} generated, ${result.finish}, ${result.trace?.ms ?? "?"} ms]`);
+      await annotate(`grounding: ${grounding ?? "ok"} | ${JSON.stringify(result.raw)}  [${result.completionTokens} generated, ${result.finish}, ${result.ms} ms]`);
       logToPage(`guard on ${g.name}`, mentionsCount, `grounding ${grounding ?? "ok"}: ${detail}`);
       expect(result.outcome.kind, "a banned tool call must not come back").toBe("text");
       expect(mentionsCount, "the answer should be about the result").toBe(true);

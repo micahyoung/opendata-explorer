@@ -7,7 +7,8 @@ import {
 } from "@huggingface/transformers";
 import { MODEL_DTYPE, MODEL_ID } from "../../../config/localModel";
 import { IM_END, planPrompt, type Generation } from "./renderPrompt";
-import type { GenerateRequest, GenerateResult, LocalEngine } from "./types";
+import { createStepTimer } from "./stepTiming";
+import { abortedWith, type GenerateRequest, type GenerateResult, type LocalEngine, type StepProgress } from "./types";
 
 type Tokenizer = {
   (text: string, options?: object): { input_ids: Tensor };
@@ -38,6 +39,9 @@ function patchNullPixelValues(model: Generator) {
     return inputs;
   };
 }
+
+/** The part of the timer that belongs in a step trace. */
+const stepMs = ({ prefillMs, decodeMs }: { prefillMs: number; decodeMs: number }) => ({ prefillMs, decodeMs });
 
 const int64 = (ids: number[]) => new Tensor("int64", BigInt64Array.from(ids.map(BigInt)), [1, ids.length]);
 const ones = (n: number) => new Tensor("int64", new BigInt64Array(n).fill(1n), [1, n]);
@@ -95,6 +99,7 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
       const fedText = warm ? plan.text.slice(cached!.text.length) : plan.text;
       const inputIds = warm ? [...cached!.ids, ...encode(fedText)] : encode(plan.text);
 
+      const timer = createStepTimer();
       const stopping = new InterruptableStoppingCriteria();
       const onAbort = () => stopping.interrupt();
       signal?.addEventListener("abort", onAbort);
@@ -110,6 +115,7 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
           ...(req.forbidToolCalls ? { bad_words_ids: toolCallOpeners } : {}),
           return_dict_in_generate: true,
           stopping_criteria: stopping,
+          streamer: timer.streamer,
         })) as { sequences: Tensor; past_key_values: KvCache };
         sequence = (out.sequences.tolist() as bigint[][])[0].map(Number);
         cache = out.past_key_values;
@@ -121,9 +127,19 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
       }
 
       if (signal?.aborted) {
+        // The interrupted generate still returned what it had, so say how far it got before the cache is thrown away.
+        const done = sequence.slice(inputIds.length);
+        const t = timer.result();
+        const progress: StepProgress = {
+          phase: t.phase,
+          elapsedMs: t.prefillMs + t.decodeMs,
+          prefillMs: t.prefillMs,
+          tokens: done.length,
+          partial: tokenizer.decode(done, { skip_special_tokens: false }),
+        };
         await cache.dispose();
         await reset();
-        signal.throwIfAborted();
+        throw abortedWith(progress);
       }
 
       const generated = sequence.slice(inputIds.length);
@@ -137,6 +153,7 @@ export async function loadEngine(onProgress: (info: ProgressInfo) => void): Prom
           step: ++stepNo,
           startedAt: startedAt.toISOString(),
           ms: Date.now() - startedAt.getTime(),
+          ...stepMs(timer.result()),
           ...(plan.cold ? { coldReason: plan.cold } : {}),
           promptTokens: inputIds.length,
           reusedTokens,
